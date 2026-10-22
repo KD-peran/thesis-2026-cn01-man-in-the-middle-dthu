@@ -8,7 +8,7 @@ Hướng dẫn cho Claude Code / Trợ lý AI khi làm việc trên repository n
 - **Tên đề tài:** **Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle**
 - **Mã số đề tài:** `2026.MITM.01`
 - **Sinh viên thực hiện:** **Nguyễn Thị Kỳ Duyên** (MSSV: `0023410647` — Lớp: `ĐHCNTT23B-CS`)
-- **Giảng viên hướng dẫn:** **TS. Lương Thái Ngọc**
+- **Giảng viên hướng dẫn:** **ThS. Trịnh Lê Hoàng Tuấn**
 - **Cơ sở đào tạo:** Trường Đại học Đồng Tháp (DTHU) — Khoa Công nghệ và Kỹ thuật
 - **Khóa đào tạo:** 2023 – 2027 (Thời gian thực hiện: Năm học 2026 – 2027)
 
@@ -23,7 +23,7 @@ Hướng dẫn cho Claude Code / Trợ lý AI khi làm việc trên repository n
 3. **Không bịa dữ liệu học vụ:**
    - Cơ sở đào tạo duy nhất: **Trường Đại học Đồng Tháp (DTHU) — Khoa Công nghệ và Kỹ thuật**.
    - Sinh viên thực hiện: **Nguyễn Thị Kỳ Duyên** (MSSV: `0023410647` — Lớp: `ĐHCNTT23B-CS`).
-   - Giảng viên hướng dẫn: **TS. Lương Thái Ngọc**.
+   - Giảng viên hướng dẫn: **ThS. Trịnh Lê Hoàng Tuấn**.
    - Ngành / Chuyên ngành: **Khoa học máy tính / Mạng Máy Tính và An Ninh** (Khóa 2023 – 2027).
    - Tuyệt đối KHÔNG suy đoán, không sử dụng tên trường khác. Mọi thông tin học vụ bắt buộc đối chiếu với `thu-tuc-khoa/de-cuong-khoa-luan.md`.
 

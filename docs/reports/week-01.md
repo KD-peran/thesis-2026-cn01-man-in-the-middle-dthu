@@ -2,12 +2,12 @@
 
 > **Thời gian:** 01/09/2026 — 07/09/2026  
 > **Sinh viên thực hiện:** Nguyễn Thị Kỳ Duyên (MSSV: `0023410647`)  
-> **Giảng viên hướng dẫn:** TS. Lương Thái Ngọc
+> **Giảng viên hướng dẫn:** ThS. Trịnh Lê Hoàng Tuấn
 
 ---
 
 ## 1. Kết quả tuần vừa rồi
-- Hoàn thành liên hệ Giảng viên hướng dẫn TS. Lương Thái Ngọc, thống nhất tên đề tài và phạm vi nghiên cứu: *Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle*.
+- Hoàn thành liên hệ Giảng viên hướng dẫn ThS. Trịnh Lê Hoàng Tuấn, thống nhất tên đề tài và phạm vi nghiên cứu: *Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle*.
 - Soạn thảo và nộp hồ sơ học vụ ban đầu: Đơn đăng ký đề tài (Mẫu 1) và Bảng kế hoạch thực hiện 12 tuần (Mẫu 2).
 - Khởi tạo kiến trúc repository chuẩn học thuật và hệ thống Web Docsify trực quan.
 - Dựng thành công môi trường thử nghiệm Testbed Lab ảo hóa 5 node: Kali Linux, 02 máy nạn nhân (Win 10/Ubuntu), Gateway Linux và Nginx Web Server.

@@ -20,7 +20,7 @@ Thư mục `huong-dan/` lưu trữ toàn bộ văn bản quy chế, tiêu chuẩ
 1. `KH-KLTN 2026-2027.pdf`: Kế hoạch số 5196/KH-ĐHĐT của Hiệu trưởng Trường Đại học Đồng Tháp về tổ chức KLTN năm học 2026--2027.
 2. `quy-dinh-hinh-thuc-kltn.pdf`: Quy định chi tiết về hình thức trình bày luận văn / khóa luận (khổ A4, lề chuẩn, font chữ, bố cục).
 3. `rubric-cham-khoa-luan.md`: Tiêu chí đánh giá chi tiết của Hội đồng bảo vệ.
-4. `phieu-danh-gia-gvhd.md`: Mẫu phiếu đánh giá của TS. Lương Thái Ngọc.
+4. `phieu-danh-gia-gvhd.md`: Mẫu phiếu đánh giá của ThS. Trịnh Lê Hoàng Tuấn.
 5. `mau-bien-ban-tuan.md`: Mẫu biên bản ghi nhận nội dung hướng dẫn hàng tuần.
 6. `chu-ky-sinh-vien.jpg`: Chữ ký chính thức của sinh viên phục vụ văn bản.
 7. `bien-ban/`: Thư mục lưu trữ các biên bản làm việc hàng tuần.

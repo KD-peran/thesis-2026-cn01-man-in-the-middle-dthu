@@ -28,8 +28,8 @@
 
 * **Tên đề tài:** **Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle**
 * **Lĩnh vực nghiên cứu:** An toàn thông tin mạng, Tấn công & Phòng thủ mạng (Network Security / Red Team \& Blue Team), Kỹ thuật bảo mật lớp 2 (Data Link) và lớp 7 (Application).
-* **Giảng viên hướng dẫn:** **TS. Lương Thái Ngọc**
-* **Thời gian thực hiện:** Học kỳ 1 năm học 2026 — 2027 (Thời gian bảo vệ: Năm 2026).
+* **Giảng viên hướng dẫn:** **ThS. Trịnh Lê Hoàng Tuấn**
+* **Thời gian thực hiện:** Từ 19/10/2026 đến 19/12/2026 (Nộp báo cáo trước 21/12/2026; Báo cáo bảo vệ dự kiến từ 22/12/2026 đến 28/12/2026).
 
 ---
 
@@ -45,9 +45,9 @@
 
 2. **Sản phẩm dự kiến bàn giao:**
    * Báo cáo toàn văn đề tài (Bản in PDF chuẩn LaTeX theo quy chuẩn của Khoa Công nghệ và Kỹ thuật, Trường ĐH Đồng Tháp).
-   * Slide thuyết trình bảo vệ trước Hội đồng (LaTeX Beamer).
+   * Slide thuyết trình bảo vệ trước Hội đồng (LaTeX Beamer / PDF / PPTX).
    * Bộ mã nguồn công cụ khai thác (PoC) và kịch bản cấu hình giải pháp phòng vệ trong thư mục `code/`.
-   * Bộ dữ liệu đo kiểm và bảng đối sánh định lượng trước/sau khi phòng thủ trong thư mục `thuc-nghiem/`.
+   * Gói nộp số hóa thư mục chuẩn `MSSV_HoTen` (`0023410647_NguyenThiKyDuyen`) gồm: file báo cáo PDF, source code + CSDL nén lại, file powerpoint báo cáo.
    * Trang tài liệu Web Docsify trực quan phục vụ theo dõi tiến độ.
 
 ---
@@ -56,9 +56,9 @@
 
 Em xin cam đoan đề tài đăng ký trên là công trình nghiên cứu nghiêm túc của bản thân dưới sự định hướng của Giảng viên hướng dẫn, tuân thủ nghiêm ngặt quy chế đào tạo và chuẩn mực liêm chính học thuật của Trường Đại học Đồng Tháp. Mọi kịch bản khai thác an ninh chỉ được thực hiện trong môi trường phòng thử nghiệm an toàn, phục vụ mục đích nghiên cứu phòng thủ.
 
-*Đồng Tháp, ngày 10 tháng 09 năm 2026*
+*Đồng Tháp, ngày 19 tháng 10 năm 2026*
 
 | Ý kiến của Giảng viên hướng dẫn | Sinh viên đăng ký |
 |:---:|:---:|
 | *(Ký và ghi rõ họ tên)* | *(Ký và ghi rõ họ tên)* |
-| <br><br>**TS. Lương Thái Ngọc** | <br><br>**Nguyễn Thị Kỳ Duyên** |
+| <br><br>**ThS. Trịnh Lê Hoàng Tuấn** | <br><br>**Nguyễn Thị Kỳ Duyên** |

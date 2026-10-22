@@ -21,7 +21,7 @@
 
 ## 📌 Các Mốc Đánh Giá Quan Trọng
 
-1. **Mốc 1 (Tuần 01):** Thông qua đề cương chi tiết cấp Khoa và phân công GVHD chính thức (TS. Lương Thái Ngọc). *(Đạt)*
+1. **Mốc 1 (Tuần 01):** Thông qua đề cương chi tiết cấp Khoa và phân công GVHD chính thức (ThS. Trịnh Lê Hoàng Tuấn). *(Đạt)*
 2. **Mốc 2 (Tuần 04):** Hoàn thành khung mô phỏng kỹ thuật, kịch bản tấn công PoC và giải pháp phòng thủ đa lớp. *(Đạt)*
 3. **Mốc 3 (Tuần 06):** Hoàn thiện 100% bản thảo báo cáo toàn văn (40 trang) và slide Beamer. *(Đạt)*
 4. **Mốc 4 (Năm 2026 / 2027):** Bảo vệ chính thức trước Hội đồng đánh giá đề tài. *(Đích đến)*

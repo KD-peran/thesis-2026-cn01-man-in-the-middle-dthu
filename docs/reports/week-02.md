@@ -2,7 +2,7 @@
 
 > **Thời gian:** 08/09/2026 — 14/09/2026  
 > **Sinh viên thực hiện:** Nguyễn Thị Kỳ Duyên (MSSV: `0023410647`)  
-> **Giảng viên hướng dẫn:** TS. Lương Thái Ngọc
+> **Giảng viên hướng dẫn:** ThS. Trịnh Lê Hoàng Tuấn
 
 ---
 

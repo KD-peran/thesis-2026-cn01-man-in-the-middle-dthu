@@ -4,7 +4,7 @@
 * **Mã đề tài:** `2026.MITM.01`
 * **Sinh viên thực hiện:** **Nguyễn Thị Kỳ Duyên** (MSSV: `0023410647` — Lớp: `ĐHCNTT23B-CS`)
 * **Ngành đào tạo:** Khoa học máy tính — **Chuyên ngành:** Mạng Máy Tính và An Ninh
-* **Giảng viên hướng dẫn:** **TS. Lương Thái Ngọc**
+* **Giảng viên hướng dẫn:** **ThS. Trịnh Lê Hoàng Tuấn**
 * **Cơ sở đào tạo:** Trường Đại học Đồng Tháp (DTHU) — Khoa Công nghệ và Kỹ thuật
 
 ---

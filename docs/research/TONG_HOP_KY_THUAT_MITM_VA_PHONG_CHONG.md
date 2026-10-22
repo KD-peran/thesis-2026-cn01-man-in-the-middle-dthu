@@ -1,7 +1,7 @@
 # BÁO CÁO NGHIÊN CỨU CHUYÊN SÂU: KỸ THUẬT KHAI THÁC VÀ PHÒNG CHỐNG TẤN CÔNG MAN-IN-THE-MIDDLE
 
 > **Người thực hiện:** Nguyễn Thị Kỳ Duyên (MSSV: `0023410647` — Lớp: `ĐHCNTT23B-CS`)  
-> **Giảng viên hướng dẫn:** TS. Lương Thái Ngọc  
+> **Giảng viên hướng dẫn:** ThS. Trịnh Lê Hoàng Tuấn  
 > **Cơ sở đào tạo:** Trường Đại học Đồng Tháp (DTHU) — Khoa Công nghệ và Kỹ thuật  
 > **Phong cách trình bày:** Sư phạm trực quan — Văn nói kỹ thuật dễ đọc hiểu — Cấu trúc 3 câu hỏi bắt buộc: **WHAT / WHY / HOW**.
 

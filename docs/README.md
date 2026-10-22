@@ -30,7 +30,7 @@ Hệ thống tài liệu Web Docsify này là cổng thông tin tổng hợp (Da
 | **Sinh viên thực hiện** | **Nguyễn Thị Kỳ Duyên** |
 | **Mã số sinh viên (MSSV)** | `0023410647` |
 | **Lớp sinh hoạt** | ĐHCNTT23B-CS |
-| **Giảng viên hướng dẫn** | **TS. Lương Thái Ngọc** |
+| **Giảng viên hướng dẫn** | **ThS. Trịnh Lê Hoàng Tuấn** |
 
 ---
 

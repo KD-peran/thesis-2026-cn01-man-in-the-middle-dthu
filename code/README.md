@@ -2,7 +2,7 @@
 
 > **Đề tài:** Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle  
 > **Sinh viên thực hiện:** Nguyễn Thị Kỳ Duyên (MSSV: `0023410647` — Lớp: `ĐHCNTT23B-CS`)  
-> **Giảng viên hướng dẫn:** TS. Lương Thái Ngọc  
+> **Giảng viên hướng dẫn:** ThS. Trịnh Lê Hoàng Tuấn  
 > **Cơ sở đào tạo:** Trường Đại học Đồng Tháp (DTHU) — Khoa Công nghệ và Kỹ thuật
 
 ---

@@ -1,7 +1,7 @@
 # HƯỚNG DẪN QUẢN TRỊ DỰ ÁN VÀ ĐÓNG GÓP (CONTRIBUTING)
 
 Dự án: **Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle**  
-Sinh viên thực hiện: **Nguyễn Thị Kỳ Duyên** | Giảng viên hướng dẫn: **TS. Lương Thái Ngọc**  
+Sinh viên thực hiện: **Nguyễn Thị Kỳ Duyên** | Giảng viên hướng dẫn: **ThS. Trịnh Lê Hoàng Tuấn**  
 Cơ sở đào tạo: **Trường Đại học Đồng Tháp (DTHU) — Khoa Công nghệ và Kỹ thuật**
 
 ---

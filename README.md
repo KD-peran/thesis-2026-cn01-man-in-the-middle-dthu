@@ -47,7 +47,7 @@ Năm bước khởi đầu cho sinh viên và người cộng tác:
 | **Lớp sinh hoạt** | `ĐHCNTT23B-CS` |
 | **Ngành / Chuyên ngành** | Khoa học máy tính / Mạng Máy Tính và An Ninh |
 | **Khóa đào tạo** | `2023 – 2027` |
-| **Giáo viên hướng dẫn** | **TS. Lương Thái Ngọc** |
+| **Giáo viên hướng dẫn** | **ThS. Trịnh Lê Hoàng Tuấn** |
 | **Cơ sở đào tạo** | Khoa Công nghệ và Kỹ thuật — Trường Đại học Đồng Tháp (DTHU) |
 | **Thời gian thực hiện** | Năm học 2026 — 2027 |
 

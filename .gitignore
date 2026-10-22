@@ -69,3 +69,8 @@ desktop.ini
 
 # PDF tam sinh ra truc tiep trong latex/ (giu lai docs/downloads/*.pdf)
 latex/*.pdf
+
+# Goi ho so dong goi cuc bo (tao ra boi tool.ps1 hoac GitHub Action artifacts)
+0023410647_NguyenThiKyDuyen/
+0023410647_NguyenThiKyDuyen.zip
+

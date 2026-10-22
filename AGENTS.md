@@ -9,7 +9,7 @@ Tài liệu cấu hình và quy chuẩn hoạt động của hệ thống Agent 
 * **Tên đề tài:** **Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle**
 * **Mã số đề tài:** `2026.MITM.01`
 * **Sinh viên thực hiện:** **Nguyễn Thị Kỳ Duyên** (MSSV: `0023410647` — Lớp: `ĐHCNTT23B-CS`)
-* **Giảng viên hướng dẫn:** **TS. Lương Thái Ngọc**
+* **Giảng viên hướng dẫn:** **ThS. Trịnh Lê Hoàng Tuấn**
 * **Cơ sở đào tạo:** Trường Đại học Đồng Tháp (DTHU) — Khoa Công nghệ và Kỹ thuật
 * **Ngành / Chuyên ngành:** Khoa học máy tính / Mạng Máy Tính và An Ninh (Khóa 2023 – 2027)
 

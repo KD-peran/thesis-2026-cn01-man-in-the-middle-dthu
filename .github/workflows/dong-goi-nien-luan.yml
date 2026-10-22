@@ -1,0 +1,102 @@
+name: Dong goi Ho so Nien luan (MSSV_HoTen)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'latex/**'
+      - 'code/**'
+      - 'thuc-nghiem/**'
+      - 'thu-tuc-khoa/**'
+      - 'slide/**'
+      - '.github/scripts/**'
+      - '.github/workflows/dong-goi-nien-luan.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  kiem-tra:
+    name: 1. Kiem tra Tinh hop le & Trich dan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Chay Script Kiem Tra Trich Dan
+        run: node .github/scripts/kiem_tra_trich_dan.js
+
+  bien-dich-latex:
+    name: 2. Bien dich PDF Bao cao & Slide Beamer
+    runs-on: ubuntu-latest
+    needs: [kiem-tra]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Bien dich khoa-luan.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: khoa-luan.tex
+          working_directory: latex
+          args: -interaction=nonstopmode -file-line-error -pdf
+          extra_system_packages: "biber texlive-lang-vietnamese"
+
+      - name: Bien dich slide-bao-ve.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: slide-bao-ve.tex
+          working_directory: latex
+          args: -interaction=nonstopmode -file-line-error -pdf
+          extra_system_packages: "biber texlive-lang-vietnamese"
+
+      - name: Luu tru tam thoi PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-pdfs
+          path: |
+            latex/khoa-luan.pdf
+            latex/slide-bao-ve.pdf
+          retention-days: 1
+
+  dong-goi-ho-so:
+    name: 3. Dong goi Thu muc MSSV_HoTen Nop Nien luan
+    runs-on: ubuntu-latest
+    needs: [bien-dich-latex]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Tai ve cac file PDF da bien dich
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-pdfs
+          path: latex/outputs
+
+      - name: Chay Script Dong Goi Ho So Nien Luan
+        run: node .github/scripts/dong_goi_ho_so.js
+
+      - name: Luu tru Artifact Thu muc Nop MSSV_HoTen
+        uses: actions/upload-artifact@v4
+        with:
+          name: 0023410647_NguyenThiKyDuyen
+          path: 0023410647_NguyenThiKyDuyen
+          retention-days: 60
+
+      - name: Luu tru Artifact File Nen ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: 0023410647_NguyenThiKyDuyen_ZIP
+          path: 0023410647_NguyenThiKyDuyen.zip
+          retention-days: 60
