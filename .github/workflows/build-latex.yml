@@ -1,0 +1,43 @@
+name: Bien dich LaTeX (Khoa luan & Slide)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'latex/**'
+      - '.github/workflows/build-latex.yml'
+  workflow_dispatch:
+
+jobs:
+  build-pdf:
+    name: Bien dich PDF Khoa luan va Slide Beamer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Bien dich khoa-luan.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: khoa-luan.tex
+          working_directory: latex
+          args: -interaction=nonstopmode -file-line-error -pdf
+          extra_system_packages: "biber texlive-lang-vietnamese"
+
+      - name: Bien dich slide-bao-ve.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: slide-bao-ve.tex
+          working_directory: latex
+          args: -interaction=nonstopmode -file-line-error -pdf
+          extra_system_packages: "biber texlive-lang-vietnamese"
+
+      - name: Luu tru ban in PDF (Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: an-pham-nien-luan-pdf
+          path: |
+            latex/khoa-luan.pdf
+            latex/slide-bao-ve.pdf
+          retention-days: 30
