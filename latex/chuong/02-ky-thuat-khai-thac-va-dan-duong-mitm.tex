@@ -64,7 +64,7 @@ Sau khi đã thực hiện thành công kỹ thuật dẫn đường ở tầng 
 
 Trong một mạng chưa được cấu hình kiểm soát cổng, kẻ tấn công có thể khởi tạo một dịch vụ máy chủ DHCP lậu (Rogue DHCP Server) \cite{rfc2131_dhcp}.
 \begin{itemize}
-  \item Để tăng tỷ lệ thành công, kẻ tấn công có thể kết hợp với kỹ thuật **DHCP Starvation**: Gửi hàng ngàn gói tin DHCP Discover với các địa chỉ MAC ngẫu nhiên khác nhau để làm cạn kiệt toàn bộ dải IP của máy chủ DHCP thật.
+  \item Để tăng tỷ lệ thành công, kẻ tấn công có thể kết hợp với kỹ thuật \textbf{DHCP Starvation}: Gửi hàng ngàn gói tin DHCP Discover với các địa chỉ MAC ngẫu nhiên khác nhau để làm cạn kiệt toàn bộ dải IP của máy chủ DHCP thật.
   \item Khi một máy người dùng mới kết nối vào mạng và phát quảng bá gói DHCP Discover, máy chủ Rogue DHCP của kẻ tấn công sẽ lập tức phản hồi gói tin \texttt{DHCP Offer}.
   \item Trong gói tin phản hồi này, kẻ tấn công thiết lập:
     \begin{equation}

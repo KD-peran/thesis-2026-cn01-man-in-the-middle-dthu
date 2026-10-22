@@ -59,7 +59,7 @@ Quá trình phân giải thông thường diễn ra như sau:
 \begin{enumerate}
   \item Khi máy $A$ muốn gửi gói tin IP cho máy $B$ cùng dải mạng nhưng chưa biết địa chỉ MAC của $B$, máy $A$ sẽ phát quảng bá một thông điệp \textbf{ARP Request} (Broadcast đến địa chỉ MAC \texttt{FF:FF:FF:FF:FF:FF}): \textit{``Ai có IP $B$, hãy báo cho IP $A$ biết địa chỉ MAC!''}.
   \item Mọi thiết bị trong vùng quảng bá đều nhận được gói tin, nhưng chỉ có máy $B$ sở hữu địa chỉ IP trùng khớp mới phản hồi lại bằng gói tin \textbf{ARP Reply} (Unicast gửi riêng cho máy $A$): \textit{``Tôi là IP $B$, địa chỉ MAC của tôi là $MAC_B$''}.
-  \item Máy $A$ lưu cặp ánh xạ $(IP_B, MAC_B)$ vào bộ đệm tạm thời gọi là **ARP Cache** để sử dụng cho các lần gửi sau mà không cần hỏi lại.
+  \item Máy $A$ lưu cặp ánh xạ $(IP_B, MAC_B)$ vào bộ đệm tạm thời gọi là \textbf{ARP Cache} để sử dụng cho các lần gửi sau mà không cần hỏi lại.
 \end{enumerate}
 
 \begin{figure}[htbp]
