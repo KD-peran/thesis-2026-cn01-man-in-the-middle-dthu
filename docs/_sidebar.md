@@ -3,11 +3,11 @@
   - [📊 Sơ đồ Kiến trúc & Luồng Tấn Công](system-diagrams.md)
   - [🗺️ Bản đồ Cấu trúc Repository](Cau-truc-toan-repo.md)
 
-- **Ấn phẩm Khóa luận & Slide Bảo vệ**
+- **Ấn phẩm Niên luận & Slide Bảo vệ**
   - [📚 Đọc & Tải Ấn phẩm PDF](publications.md)
-  - [📄 Báo cáo Toàn văn (PDF)](publications.md#1-báo-cáo-toàn-văn-đề-tài-pdf)
+  - [📄 Báo cáo Niên luận Toàn văn (PDF)](publications.md#1-báo-cáo-niên-luận-toàn-văn-pdf)
   - [📊 Slide Thuyết trình Bảo vệ (PDF)](publications.md#2-slide-thuyết-trình-bảo-vệ-beamer-presentation)
-  - [⚙️ Quy trình Biên dịch LaTeX](publications.md#3-cách-biên-dịch-lại-từ-mã-nguồn-latex)
+  - [⚙️ Quy trình Biên dịch LaTeX](publications.md#3-quy-trình-biên-dịch-lại-từ-mã-nguồn-latex)
 
 - **Tiến độ Thực hiện Hàng tuần**
   - [📅 Bảng Tổng hợp Tiến độ](weekly-changelog.md)
