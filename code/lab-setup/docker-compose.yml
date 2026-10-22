@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # 1. Web Server Nginx mô phỏng dịch vụ trường học (Hỗ trợ HTTP & HTTPS)
+  web_server:
+    image: nginx:alpine
+    container_name: mitm_web_server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/ssl/certs:ro
+      - ./html:/usr/share/nginx/html:ro
+    networks:
+      mitm_net:
+        ipv4_address: 192.168.10.100
+
+  # 2. Ứng dụng kiểm thử lỗ hổng xác thực DVWA
+  dvwa_app:
+    image: vulnerables/web-dvwa:latest
+    container_name: mitm_dvwa_target
+    ports:
+      - "8080:80"
+    environment:
+      - PHP_DISPLAY_ERRORS=0
+    networks:
+      mitm_net:
+        ipv4_address: 192.168.10.101
+
+  # 3. DNS Server cục bộ giả lập
+  dns_server:
+    image: andyshinn/dnsmasq:latest
+    container_name: mitm_dns_server
+    ports:
+      - "53:53/udp"
+    cap_add:
+      - NET_ADMIN
+    networks:
+      mitm_net:
+        ipv4_address: 192.168.10.2
+
+networks:
+  mitm_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.10.0/24
+          gateway: 192.168.10.1

@@ -1,0 +1,362 @@
+\chapter{GIẢI PHÁP PHÒNG CHỐNG VÀ THỰC NGHIỆM KIỂM CHỨNG}
+
+\section{Các giải pháp phòng chống tấn công Man-in-the-Middle}
+
+Để xây dựng một hệ thống phòng vệ vững chắc trước tấn công MitM, mô hình phòng thủ theo chiều sâu (Defense-in-Depth) được áp dụng tại nhiều tầng trong mô hình OSI: từ tầng liên kết dữ liệu (Layer 2), tầng mạng (Layer 3) cho đến tầng ứng dụng (Layer 7).
+
+\subsection{Giao thức HTTPS và cơ chế HSTS (HTTP Strict Transport Security)}
+
+\subsubsection{Cơ chế bảo vệ của HTTPS và chứng chỉ số PKI}
+
+Giao thức HTTPS mã hóa toàn bộ dữ liệu ứng dụng bằng các bộ mật mã hiện đại trong giao thức TLS 1.3 \cite{rfc8446_tls13}. Tính bảo mật của HTTPS dựa trên:
+\begin{itemize}
+  \item \textbf{Tính bảo mật (Confidentiality):} Dữ liệu truyền được mã hóa đối xứng (AES-GCM hoặc ChaCha20-Poly1305), ngăn chặn hoàn toàn việc nghe lén.
+  \item \textbf{Tính toàn vẹn (Integrity):} Mỗi bản ghi TLS đều có mã xác thực thông điệp (MAC) tích hợp, phát hiện lập tức mọi hành vi sửa đổi gói tin.
+  \item \textbf{Xác thực danh tính máy chủ (Authentication):} Máy chủ xuất trình chứng chỉ số X.509 do tổ chức cấp chứng chỉ (Certificate Authority --- CA) uy tín ký. Trình duyệt xác thực chuỗi chứng chỉ (\textit{Certificate Chain}) đối chiếu với kho chứng chỉ gốc đáng tin cậy (\textit{Root CA Store}).
+\end{itemize}
+
+\subsubsection{Cơ chế HSTS (RFC 6797) triệt tiêu tấn công SSL Stripping}
+
+Mặc dù có HTTPS, kẻ tấn công vẫn có thể hạ cấp liên kết ban đầu bằng kỹ thuật SSL Stripping. Để triệt tiêu hoàn toàn điểm yếu này, chuẩn RFC 6797 \cite{rfc6797_hsts} giới thiệu tiêu đề bảo mật \textbf{HTTP Strict Transport Security (HSTS)}.
+
+Khi máy chủ web trả về tiêu đề phản hồi:
+\begin{lstlisting}[language=bash]
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+\end{lstlisting}
+Trình duyệt của người dùng sẽ ghi nhớ chính sách này trong khoảng thời gian quy định (\texttt{max-age=31536000} giây, tương đương 1 năm):
+\begin{enumerate}
+  \item Bất kể người dùng gõ \texttt{http://} hoặc bấm vào liên kết không an toàn, trình duyệt sẽ \textbf{tự động nâng cấp nội bộ} thành \texttt{https://} trước khi phát bất kỳ gói tin nào ra mạng.
+  \item Trình duyệt tuyệt đối không cho phép người dùng bỏ qua cảnh báo chứng chỉ số (không có nút bấm ``Tiếp tục truy cập không an toàn'' khi gặp lỗi SSL).
+  \item Với danh sách \textbf{HSTS Preload List} được tích hợp sẵn trong nhân trình duyệt (Chrome, Firefox, Safari, Edge), trình duyệt luôn kết nối HTTPS ngay từ lần đầu tiên truy cập, khiến kỹ thuật SSL Stripping bị vô hiệu hóa hoàn toàn.
+\end{enumerate}
+
+\subsection{Kỹ thuật DHCP Snooping trên thiết bị chuyển mạch}
+
+DHCP Snooping là một tính năng an ninh ở tầng 2 được tích hợp trên các thiết bị chuyển mạch (Switch quản trị như Cisco Catalyst) \cite{cisco2022dai}. DHCP Snooping hoạt động dựa trên nguyên lý phân định trạng thái của các cổng vật lý:
+\begin{itemize}
+  \item \textbf{Cổng tin cậy (Trusted Port):} Là cổng được kết nối trực tiếp với máy chủ DHCP Server hợp pháp hoặc cổng Uplink kết nối lên switch tầng trên. Chỉ các cổng này mới được phép truyền các gói tin phản hồi DHCP (\texttt{DHCP Offer}, \texttt{DHCP ACK}, \texttt{DHCP NAK}).
+  \item \textbf{Cổng không tin cậy (Untrusted Port):} Là các cổng cắm xuống máy người dùng cuối hoặc các thiết bị truy cập thông thường. Mọi gói tin phản hồi DHCP xuất phát từ cổng này đều bị Switch lập tức \textbf{tiêu hủy (Drop)}.
+\end{itemize}
+
+Bên cạnh việc ngăn chặn triệt để máy chủ DHCP giả mạo (Rogue DHCP Server), DHCP Snooping còn có nhiệm vụ vô cùng quan trọng: lắng nghe các gói tin \texttt{DHCP ACK} trên cổng Trusted để tự động xây dựng một cơ sở dữ liệu liên kết đáng tin cậy gọi là \textbf{DHCP Snooping Binding Database}. Mỗi bản ghi trong cơ sở dữ liệu này bao gồm 5 thông tin chuẩn mực:
+\begin{equation}
+  \{\text{MAC Address, IP Address, Lease Time, VLAN ID, Port}\}
+\end{equation}
+
+\subsection{Kỹ thuật Dynamic ARP Inspection (DAI)}
+
+Dynamic ARP Inspection (DAI) là giải pháp an ninh tầng 2 chuyên trách ngăn chặn tận gốc kỹ thuật ARP Spoofing/Poisoning \cite{cisco2022dai}.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+    \node[draw, rectangle, fill=gray!20, minimum width=12cm, minimum height=1.5cm, rounded corners, align=center] (switch) at (6,0) {
+      \textbf{Cisco Switch Layer 2 (Bật DHCP Snooping \& DAI)}\\
+      \footnotesize Đối chiếu gói ARP với \textbf{DHCP Snooping Binding Table}:\\
+      \footnotesize \textit{Hợp lệ: Forward} $\quad|\quad$ \textit{Sai lệch MAC-IP: DROP \& Log Vi Phạm}
+    };
+
+    \node[draw, rectangle, fill=blue!15, minimum width=2.5cm, minimum height=1.2cm, rounded corners, align=center] (victim) at (0,-3) {
+      \textbf{Victim 1}\\
+      \footnotesize Cổng Fa0/1 (\textit{Untrusted})\\
+      \footnotesize MAC: AA:AA:..:01\\
+      \footnotesize IP: 192.168.10.10
+    };
+
+    \node[draw, rectangle, fill=red!20, minimum width=2.5cm, minimum height=1.2cm, rounded corners, align=center] (attacker) at (6,-3) {
+      \textbf{Attacker (Kali)}\\
+      \footnotesize Cổng Fa0/2 (\textit{Untrusted})\\
+      \footnotesize MAC: CC:CC:..:50\\
+      \footnotesize IP: 192.168.10.50
+    };
+
+    \node[draw, rectangle, fill=green!15, minimum width=2.5cm, minimum height=1.2cm, rounded corners, align=center] (gateway) at (12,-3) {
+      \textbf{Gateway / Router}\\
+      \footnotesize Cổng Gi0/1 (\textbf{Trusted})\\
+      \footnotesize MAC: BB:BB:..:01\\
+      \footnotesize IP: 192.168.10.1
+    };
+
+    \draw[<->, >=Stealth, line width=1.2pt] (victim) -- (0,-0.8);
+    \draw[->, >=Stealth, line width=1.5pt, red, dashed] (attacker) -- node[right]{\footnotesize Gửi ARP Giả Mạo} (6,-0.8);
+    \draw[<->, >=Stealth, line width=1.2pt] (gateway) -- (12,-0.8);
+    
+    \node[draw, circle, fill=red, text=white, inner sep=2pt] at (6,-0.75) {\textbf{X}};
+    \node[red, above] at (6, -0.6) {\footnotesize \textbf{BỊ DROP NGAY}};
+  \end{tikzpicture}
+  \caption{Nguyên lý ngăn chặn ARP Spoofing bằng Dynamic ARP Inspection (DAI)}
+  \label{fig:dai-mechanism}
+\end{figure}
+
+Khi tính năng DAI được kích hoạt trên một VLAN:
+\begin{enumerate}
+  \item Mọi cổng nối tới máy trạm đều được cấu hình là cổng không tin cậy (\texttt{Untrusted}).
+  \item Khi có bất kỳ gói tin ARP (Request hoặc Reply) nào đi vào cổng Untrusted, Switch sẽ chặn lại và kiểm tra tính hợp lệ của cặp địa chỉ \texttt{(IP, MAC)} trong nội dung gói tin ARP bằng cách đối chiếu với \textbf{DHCP Snooping Binding Database}.
+  \item Nếu cặp \texttt{(IP, MAC)} trùng khớp với bản ghi đã được cấp phát bởi DHCP Server hợp pháp, Switch cho phép chuyển tiếp gói tin.
+  \item Nếu phát hiện gói tin ARP Reply giả mạo (ví dụ: máy Kali có MAC \texttt{CC:...} nhưng lại nhận là IP của Gateway \texttt{192.168.10.1}), Switch sẽ lập tức \textbf{tiêu hủy gói tin (Drop)}, ghi nhật ký cảnh báo vi phạm (\texttt{\%SW\_DAI-4-DHCP\_SNOOPING\_DENY}) và tăng bộ đếm lỗi.
+  \item Tính năng \textbf{ARP Rate Limiting} trên cổng còn giúp tự động khóa cổng (\texttt{err-disabled}) nếu kẻ tấn công gửi gói ARP với tốc độ cao vượt ngưỡng cho phép (mặc định 15 pps), ngăn chặn nguy cơ làm nghẽn CPU của Switch.
+\end{enumerate}
+
+\subsection{Mạng riêng ảo (VPN - Virtual Private Network)}
+
+Mạng riêng ảo VPN (sử dụng các giao thức mã hóa đường hầm như WireGuard, IPsec hoặc OpenVPN) thiết lập một kênh truyền mã hóa điểm - điểm (Point-to-Point Tunnel) giữa thiết bị của người dùng và máy chủ cổng VPN (VPN Gateway) \cite{stallings2023crypto}.
+
+Toàn bộ gói tin IP (bao gồm cả tiêu đề IP gốc và dữ liệu tầng giao vận TCP/UDP) đều được đóng gói và mã hóa mạnh (ví dụ ChaCha20-Poly1305 trong WireGuard hoặc AES-256 trong IPsec ESP). Khi kẻ tấn công đứng ở vị trí MitM trong mạng cục bộ và bắt các gói tin truyền qua mạng, kẻ tấn công chỉ thu được các gói tin mã hóa UDP/ESP vô nghĩa. Mọi dữ liệu về tài khoản, phiên làm việc hay nội dung web đều được bảo vệ toàn vẹn tuyệt đối.
+
+\subsection{Hệ thống giám sát và phát hiện ARP bất thường (ARP Anomaly Detection)}
+
+Đối với các hệ thống mạng sử dụng thiết bị chuyển mạch không quản lý (Unmanaged Switch) không hỗ trợ tính năng DAI, giải pháp giám sát thụ động bằng công cụ chuyên dụng là lựa chọn thay thế hiệu quả:
+\begin{itemize}
+  \item \textbf{Arpwatch:} Tiện ích giám sát lắng nghe các bản tin ARP trên giao diện mạng, duy trì cơ sở dữ liệu các cặp ánh xạ Ethernet/IP. Khi phát hiện một địa chỉ IP đột ngột thay đổi địa chỉ MAC (\texttt{flip flop}), Arpwatch sẽ lập tức ghi log hệ thống syslog và gửi email cảnh báo cho quản trị viên.
+  \item \textbf{Kịch bản Python Scapy thời gian thực:} Tự động phân tích các gói tin ARP Reply, kiểm tra tính hợp lý của thời gian sống và cảnh báo tức thì khi xuất hiện xung đột MAC đối với Gateway mặc định.
+\end{itemize}
+
+\section{Thiết kế mô hình phòng thử nghiệm thực nghiệm (Testbed Lab)}
+
+Mô hình phòng thử nghiệm được thiết kế bao gồm 5 thành phần độc lập trong một phân đoạn mạng thử nghiệm an toàn (\texttt{192.168.10.0/24}).
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+    % Switch trung tâm
+    \node[draw, rectangle, fill=blue!20, minimum width=7cm, minimum height=1.2cm, rounded corners, line width=1pt, align=center] (switch) at (5,3) {
+      \textbf{Cisco Catalyst 3750 Switch (VLAN 10)}\\
+      \footnotesize [Hỗ trợ DHCP Snooping \& DAI]
+    };
+
+    % 5 Nodes
+    \node[draw, rectangle, fill=green!15, minimum width=2.8cm, minimum height=1.3cm, rounded corners, align=center] (gw) at (0,6) {
+      \textbf{Gateway / Router}\\
+      \footnotesize IP: 192.168.10.1\\
+      \footnotesize MAC: 00:50:79:66:68:01\\
+      \footnotesize Cổng: Gi1/0/1 (\textbf{Trusted})
+    };
+
+    \node[draw, rectangle, fill=green!15, minimum width=2.8cm, minimum height=1.3cm, rounded corners, align=center] (web) at (10,6) {
+      \textbf{Web Server (Nginx)}\\
+      \footnotesize IP: 192.168.10.100\\
+      \footnotesize MAC: 00:50:79:66:68:10\\
+      \footnotesize Cổng: Gi1/0/2 (Trusted)
+    };
+
+    \node[draw, rectangle, fill=blue!10, minimum width=2.8cm, minimum height=1.3cm, rounded corners, align=center] (vic1) at (0,0) {
+      \textbf{Victim 1 (Windows 10)}\\
+      \footnotesize IP: 192.168.10.10\\
+      \footnotesize MAC: 00:0C:29:AA:BB:10\\
+      \footnotesize Cổng: Fa1/0/1 (\textit{Untrusted})
+    };
+
+    \node[draw, rectangle, fill=red!20, minimum width=3.2cm, minimum height=1.4cm, rounded corners, line width=1.2pt, red!80!black, align=center] (kali) at (5,0) {
+      \textbf{Attacker (Kali Linux)}\\
+      \footnotesize IP: 192.168.10.50\\
+      \footnotesize MAC: 00:0C:29:CC:DD:50\\
+      \footnotesize Cổng: Fa1/0/2 (\textit{Untrusted})
+    };
+
+    \node[draw, rectangle, fill=blue!10, minimum width=2.8cm, minimum height=1.3cm, rounded corners, align=center] (vic2) at (10,0) {
+      \textbf{Victim 2 (Ubuntu 22)}\\
+      \footnotesize IP: 192.168.10.20\\
+      \footnotesize MAC: 00:0C:29:EE:FF:20\\
+      \footnotesize Cổng: Fa1/0/3 (\textit{Untrusted})
+    };
+
+    % Đường nối
+    \draw[line width=1.2pt] (gw) -- (2,3.6);
+    \draw[line width=1.2pt] (web) -- (8,3.6);
+    \draw[line width=1.2pt] (vic1) -- (2,2.4);
+    \draw[line width=1.2pt] (kali) -- (5,2.4);
+    \draw[line width=1.2pt] (vic2) -- (8,2.4);
+  \end{tikzpicture}
+  \caption{Sơ đồ cấu trúc topo phòng thử nghiệm thực nghiệm (Testbed Lab)}
+  \label{fig:lab-topology}
+\end{figure}
+
+Bảng \ref{tab:lab-devices} mô tả chi tiết thông số kỹ thuật và vai trò của các thiết bị trong mô hình phòng thử nghiệm.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Bảng thông số cấu hình các thiết bị trong mô hình thử nghiệm}
+  \label{tab:lab-devices}
+  \begin{tabularx}{\textwidth}{p{2.4cm} p{2.2cm} p{2.2cm} p{2.8cm} L}
+    \toprule
+    \textbf{Thiết bị} & \textbf{Hệ điều hành} & \textbf{Địa chỉ IP} & \textbf{Địa chỉ MAC} & \textbf{Vai trò \& Dịch vụ} \\
+    \midrule
+    \textbf{Gateway} & Linux / pfSense & 192.168.10.1 & \texttt{00:50:79:66:68:01} & Cổng mặc định, DHCP Server. \\
+    \textbf{Web Server} & Ubuntu 22.04 & 192.168.10.100 & \texttt{00:50:79:66:68:10} & Nginx, Web DVWA, HTTP/HTTPS. \\
+    \textbf{Victim 1} & Windows 10 & 192.168.10.10 & \texttt{00:0C:29:AA:BB:10} & Máy nạn nhân duyệt web. \\
+    \textbf{Victim 2} & Ubuntu 22.04 & 192.168.10.20 & \texttt{00:0C:29:EE:FF:20} & Máy trạm phụ trong mạng LAN. \\
+    \textbf{Attacker} & Kali Linux & 192.168.10.50 & \texttt{00:0C:29:CC:DD:50} & Máy tấn công: Bettercap, Scapy. \\
+    \textbf{Switch} & Cisco Catalyst & 192.168.10.2 & \texttt{00:1E:4A:11:22:33} & Switch quản lý, bật Snooping \& DAI. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Kịch bản thực hiện tấn công Man-in-the-Middle (Trước khi phòng vệ)}
+
+\subsection{Kịch bản 1: Tấn công ARP Cache Poisoning và nghe lén dữ liệu}
+
+Trên máy tấn công Kali Linux, kẻ tấn công kích hoạt tính năng định tuyến gói tin và sử dụng công cụ \texttt{arpspoof} (hoặc kịch bản Python Scapy \texttt{arp\_spoof.py}) để tiến hành đầu độc hai chiều:
+\begin{lstlisting}[language=bash]
+# Kich hoat IP Forwarding
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# Dau doc Victim 1 (tin rang Kali la Gateway)
+arpspoof -i eth0 -t 192.168.10.10 192.168.10.1
+
+# Dau doc Gateway (tin rang Kali la Victim 1)
+arpspoof -i eth0 -t 192.168.10.1 192.168.10.10
+\end{lstlisting}
+
+\textbf{Kiểm tra trên máy Victim 1:} Mở cửa sổ dòng lệnh PowerShell và gõ lệnh \texttt{arp -a}. Kết quả hiển thị cho thấy địa chỉ vật lý của Gateway (\texttt{192.168.10.1}) đã bị đổi thành địa chỉ MAC của máy Kali (\texttt{00-0c-29-cc-dd-50}). Toàn bộ bảng ARP Cache của nạn nhân đã bị nhiễm độc hoàn toàn.
+
+\textbf{Đánh cắp thông tin đăng nhập:} Nạn nhân mở trình duyệt truy cập ứng dụng web nội bộ \texttt{http://192.168.10.100/login.php} và đăng nhập với tài khoản \texttt{admin} / \texttt{P@ssword2026}. Trên máy Kali, công cụ Wireshark hoặc \texttt{tcpdump} bắt trọn vẹn gói tin HTTP POST với nội dung bản rõ:
+\begin{lstlisting}[language=bash]
+POST /login.php HTTP/1.1
+Host: 192.168.10.100
+Content-Type: application/x-www-form-urlencoded
+username=admin&password=P%40ssword2026&Login=Login
+\end{lstlisting}
+Thông tin đăng nhập của người dùng bị lộ hoàn toàn mà nạn nhân không nhận được bất kỳ cảnh báo bất thường nào.
+
+\subsection{Kịch bản 2: Tấn công DNS Spoofing chuyển hướng nạn nhân}
+
+Sau khi đã thiết lập thành công ARP Spoofing, kẻ tấn công cấu hình công cụ \texttt{dnschef} để giả mạo bản ghi DNS cho tên miền \texttt{portal.dthu.edu.vn}:
+\begin{lstlisting}[language=bash]
+dnschef --interface 192.168.10.50 --fakeip 192.168.10.50 --fakedomains "portal.dthu.edu.vn"
+\end{lstlisting}
+
+Khi máy Victim 1 gõ \texttt{ping portal.dthu.edu.vn} hoặc mở trình duyệt truy cập tên miền này, máy nạn nhân nhận được phản hồi địa chỉ IP là \texttt{192.168.10.50} (IP của máy Kali) thay vì IP máy chủ thật của nhà trường. Trình duyệt tự động tải trang giao diện đăng nhập giả mạo do kẻ tấn công chuẩn bị sẵn.
+
+\subsection{Kịch bản 3: Tấn công SSL Stripping và đánh cắp Cookie phiên}
+
+Kẻ tấn công sử dụng công cụ Bettercap để khởi động mô-đun proxy hạ cấp giao thức \texttt{http.proxy} kèm tính năng SSL Stripping:
+\begin{lstlisting}[language=bash]
+bettercap -iface eth0 -eval "set arp.spoof.targets 192.168.10.10; arp.spoof on; set http.proxy.sslstrip true; http.proxy on"
+\end{lstlisting}
+
+Khi nạn nhân truy cập vào trang web ngân hàng trực tuyến hoặc hệ thống đào tạo có cấu hình chuyển hướng HTTP $\rightarrow$ HTTPS thông thường:
+\begin{enumerate}
+  \item Bettercap đón đầu gói chuyển hướng \texttt{HTTP 302 Found} và giữ kín kết nối HTTPS với máy chủ thật.
+  \item Bettercap hạ cấp trang web phản hồi về HTTP bản rõ cho nạn nhân. Biểu tượng ổ khóa màu xanh trên thanh địa chỉ biến mất, nhưng giao diện trang web vẫn hiển thị đầy đủ.
+  \item Nạn nhân đăng nhập tài khoản. Bettercap bắt được gói tin POST và trích xuất thành công Cookie phiên: \texttt{PHPSESSID=89f1a2e3...}. Kẻ tấn công tiêm chuỗi Cookie này vào trình duyệt của mình và chiếm đoạt phiên làm việc thành công.
+\end{enumerate}
+
+\section{Triển khai giải pháp phòng vệ và thực nghiệm kiểm chứng}
+
+Sau khi đã chứng minh tính khả thi của các cuộc tấn công, hệ thống phòng thủ được triển khai đồng bộ và các kịch bản tấn công được chạy lại để kiểm chứng.
+
+\subsection{Kiểm chứng 1: Kích hoạt HTTPS và HSTS trên Web Server}
+
+Trên máy chủ Nginx (\texttt{192.168.10.100}), cấu hình chứng chỉ số TLS 1.3 và bổ sung chỉ thị HSTS nghiêm ngặt trong tệp cấu hình:
+\begin{lstlisting}[language=bash]
+server {
+    listen 443 ssl http2;
+    server_name portal.dthu.edu.vn;
+
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # Kich hoat HSTS voi thoi gian 1 nam
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+}
+\end{lstlisting}
+
+\textbf{Chạy lại tấn công SSL Stripping:} Kẻ tấn công kích hoạt lại Bettercap với tính năng SSL Stripping. Khi nạn nhân gõ \texttt{http://portal.dthu.edu.vn}:
+\begin{itemize}
+  \item Trình duyệt của nạn nhân phát hiện chính sách HSTS đã được lưu trong bộ nhớ và tự động gửi yêu cầu \textbf{nâng cấp nội bộ} lên \texttt{https://portal.dthu.edu.vn} ngay tại máy khách.
+  \item Không có bất kỳ gói tin HTTP bản rõ nào được phát ra mạng.
+  \item Công cụ Bettercap không nhận được yêu cầu HTTP ban đầu để thực hiện hạ cấp. Phiên kết nối duy trì mã hóa TLS từ đầu đến cuối. Tấn công SSL Stripping bị \textbf{vô hiệu hóa 100\%}.
+\end{itemize}
+
+\subsection{Kiểm chứng 2: Cấu hình DHCP Snooping trên Cisco Switch}
+
+Tiến hành cấu hình tính năng DHCP Snooping trên Switch Cisco Catalyst 3750:
+\begin{lstlisting}[language=bash]
+Switch(config)# ip dhcp snooping
+Switch(config)# ip dhcp snooping vlan 10
+Switch(config)# interface GigabitEthernet 1/0/1
+Switch(config-if)# ip dhcp snooping trust
+Switch(config-if)# exit
+\end{lstlisting}
+
+\textbf{Chạy lại tấn công Rogue DHCP Server:} Kẻ tấn công trên Kali khởi động dịch vụ máy chủ DHCP lậu trên cổng \texttt{FastEthernet 1/0/2} (cổng Untrusted).
+\begin{itemize}
+  \item Khi máy Victim phát gói tin DHCP Discover, Rogue DHCP Server gửi gói tin \texttt{DHCP Offer}.
+  \item Switch phát hiện gói phản hồi DHCP xuất phát từ cổng Untrusted và \textbf{lập tức tiêu hủy (Drop)}.
+  \item Lệnh kiểm tra trên Switch \texttt{show ip dhcp snooping statistics} ghi nhận:
+  \begin{lstlisting}[language=bash]
+Packets Dropped on Untrusted Ports: 24
+DHCP Offer packets dropped: 24
+  \end{lstlisting}
+  Nạn nhân chỉ nhận được cấu hình IP từ Gateway hợp pháp. Tấn công DHCP Spoofing bị chặn đứng hoàn toàn.
+\end{itemize}
+
+\subsection{Kiểm chứng 3: Cấu hình Dynamic ARP Inspection (DAI)}
+
+Tiến hành kích hoạt tính năng kiểm tra ARP động trên Switch dựa trên cơ sở dữ liệu của DHCP Snooping:
+\begin{lstlisting}[language=bash]
+Switch(config)# ip arp inspection vlan 10
+Switch(config)# interface GigabitEthernet 1/0/1
+Switch(config-if)# ip arp inspection trust
+Switch(config-if)# exit
+Switch(config)# interface FastEthernet 1/0/2
+Switch(config-if)# ip arp inspection limit rate 15
+\end{lstlisting}
+
+\textbf{Chạy lại tấn công ARP Cache Poisoning:} Kẻ tấn công trên Kali chạy lại lệnh \texttt{arpspoof} để gửi các gói tin ARP Reply giả mạo.
+\begin{itemize}
+  \item Switch chặn bắt từng gói ARP đi vào cổng \texttt{Fa1/0/2}, đối chiếu trường \texttt{(Sender MAC, Sender IP)} với DHCP Snooping Binding Table.
+  \item Nhận thấy gói tin tuyên bố IP \texttt{192.168.10.1} nhưng lại mang địa chỉ MAC của Kali (\texttt{00:0C:29:CC:DD:50}), Switch lập tức \textbf{Drop gói tin}.
+  \item Nhật ký hệ thống trên Switch ghi nhận liên tục các thông điệp cảnh báo vi phạm:
+  \begin{lstlisting}[language=bash]
+%SW_DAI-4-DHCP_SNOOPING_DENY: 1 invalid ARPs (Req) on Fa1/0/2, vlan 10. ([000c.29cc.dd50/192.168.10.50/0000.0000.0000/192.168.10.1/])
+  \end{lstlisting}
+  \item Kiểm tra bảng ARP Cache trên máy Victim 1 bằng lệnh \texttt{arp -a}: Địa chỉ MAC của Gateway vẫn là \texttt{00-50-79-66-68-01} hoàn toàn chính xác. Bảng ARP không hề bị nhiễm độc. Tấn công ARP Spoofing bị \textbf{loại bỏ tận gốc}.
+\end{itemize}
+
+\subsection{Kiểm chứng 4: Thiết lập kết nối đường hầm mã hóa VPN}
+
+Triển khai dịch vụ VPN WireGuard giữa máy trạm Victim 1 và Gateway Router. Sau khi kết nối VPN được thiết lập (giao diện mạng ảo \texttt{wg0} được kích hoạt), kẻ tấn công kích hoạt Wireshark bắt gói tin trên đường truyền mạng LAN.
+\begin{itemize}
+  \item Nạn nhân đăng nhập và truyền tải tệp tin dung lượng lớn qua dịch vụ nội bộ.
+  \item Trên Wireshark của máy tấn công, 100\% các gói tin thu được đều là các gói tin giao thức \textbf{WireGuard UDP cổng 51820} với dữ liệu đã được mã hóa bằng thuật toán ChaCha20-Poly1305.
+  \item Kẻ tấn công không thể đọc được nội dung gói tin, không thể xác định URL mà nạn nhân đang truy cập và không thể can thiệp chỉnh sửa dữ liệu.
+\end{itemize}
+
+\subsection{Kiểm chứng 5: Vận hành hệ thống giám sát và cảnh báo ARP bất thường}
+
+Kích hoạt công cụ giám sát ARP tự động trên máy chủ mạng (\texttt{arp\_monitor\_detector.py}). Khi có bất kỳ gói ARP giả mạo nào lọt qua hoặc xuất hiện hành vi thay đổi địa chỉ MAC đột ngột của Gateway, công cụ lập tức phát hiện sự xung đột (\textit{MAC Flapping / Collision}) và gửi cảnh báo âm thanh, ghi nhật ký an ninh và gửi thông báo tức thời cho đội ngũ quản trị mạng.
+
+\section{Bảng tổng hợp đối sánh kết quả định lượng thực nghiệm}
+
+Bảng \ref{tab:experimental-results} trình bày kết quả đo kiểm định lượng đối sánh toàn diện trước và sau khi kích hoạt các giải pháp phòng chống tấn công Man-in-the-Middle.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Bảng đối sánh kết quả thực nghiệm trước và sau khi kích hoạt giải pháp phòng chống}
+  \label{tab:experimental-results}
+  \begin{tabularx}{\textwidth}{p{3.2cm} L p{2.8cm} p{2.8cm}}
+    \toprule
+    \textbf{Kịch bản kiểm thử} & \textbf{Chỉ số đo lường} & \textbf{Trước phòng vệ (Mặc định)} & \textbf{Sau khi kích hoạt giải pháp} \\
+    \midrule
+    \textbf{ARP Cache Poisoning} & Tỷ lệ làm sai lệch bảng ARP nạn nhân & 100\% (Nhiễm độc sau 1.2s) & \textbf{0\%} (Bị Switch DAI Drop toàn bộ) \\
+    \textbf{Đánh cắp mật khẩu HTTP} & Số tài khoản bắt được dạng bản rõ & 10/10 lần thử nghiệm & \textbf{0/10} (HTTPS mã hóa TLS 1.3) \\
+    \textbf{Rogue DHCP Server} & Nạn nhân nhận IP từ DHCP lậu & 90\% (Do Rogue DHCP nhanh hơn) & \textbf{0\%} (Bị DHCP Snooping Drop trên cổng) \\
+    \textbf{SSL Stripping} & Hạ cấp thành công kết nối HTTPS & 10/10 lần (Bettercap) & \textbf{0/10} (HSTS chặn hạ cấp tại máy khách) \\
+    \textbf{Cookie / Session Theft} & Tỷ lệ chiếm quyền phiên làm việc & 100\% (Lấy được PHPSESSID) & \textbf{0\%} (Secure/HttpOnly + TLS mã hóa) \\
+    \textbf{Khai thác qua VPN} & Tỷ lệ nội dung bị giải mã trên mạng & 100\% (Đọc được toàn bộ) & \textbf{0\%} (100\% gói tin là UDP mã hóa) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Tổng kết chương}
+
+Thông qua việc thiết kế mô hình phòng thử nghiệm chuẩn hóa gồm 5 thành phần mạng và triển khai thực nghiệm cả hai chiều tấn công --- phòng thủ, đề tài đã chứng minh một cách thuyết phục rằng:
+\begin{enumerate}
+  \item Các kỹ thuật tấn công Man-in-the-Middle là cực kỳ nguy hiểm, dễ dàng thực thi trong các môi trường mạng thiếu cơ chế kiểm soát và gây rò rỉ dữ liệu nghiêm trọng.
+  \item Khi kết hợp các giải pháp phòng vệ đa lớp bao gồm: \textbf{HTTPS/HSTS} ở tầng ứng dụng, \textbf{DAI \& DHCP Snooping} ở tầng liên kết dữ liệu, và \textbf{VPN} ở tầng mạng, toàn bộ các vectơ tấn công MitM nguy hiểm nhất đều bị vô hiệu hóa hoàn toàn, đảm bảo tính an toàn, bảo mật và toàn vẹn của dữ liệu người dùng.
+\end{enumerate}

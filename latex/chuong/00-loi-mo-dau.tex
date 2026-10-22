@@ -1,0 +1,73 @@
+\chapter*{PHẦN MỘT: MỞ ĐẦU}
+\addcontentsline{toc}{chapter}{Phần một: Mở đầu}
+
+\section*{1. Đặt vấn đề (Tính cấp thiết của đề tài)}
+
+Trong kỷ nguyên chuyển đổi số và bùng nổ internet hiện nay, an toàn thông tin mạng đã trở thành một trong những ưu tiên sống còn của mọi tổ chức, doanh nghiệp và người dùng cá nhân. Hàng tỷ giao dịch tài chính, thông tin định danh cá nhân, dữ liệu bí mật kinh doanh và các phiên trao đổi công việc hàng ngày đều diễn ra thông qua môi trường mạng máy tính.
+
+Tuy nhiên, phần lớn các giao thức nền tảng trong bộ giao thức TCP/IP khi được thiết kế ở giai đoạn ban đầu (như ARP \cite{rfc826_arp}, DNS \cite{rfc1035_dns}, DHCP \cite{rfc2131_dhcp}) đều dựa trên giả định môi trường mạng nội bộ (LAN) là hoàn toàn tin cậy. Các giao thức này thiếu cơ chế xác thực nguồn gốc và kiểm tra tính toàn vẹn gói tin. Lợi dụng điểm yếu cố hữu này, kẻ tấn công có thể thực hiện kỹ thuật tấn công \textbf{Man-in-the-Middle (MitM) --- Kẻ đứng ở giữa} \cite{callegati2009mitm}.
+
+Khi thực hiện tấn công MitM, kẻ tấn công tự chèn mình vào giữa luồng giao tiếp giữa nạn nhân và điểm kết nối trung gian (như Gateway, Router, DNS Server, Web Server). Từ vị trí đặc quyền này, kẻ tấn công không chỉ thụ động nghe lén các dữ liệu nhạy cảm (tài khoản, mật khẩu, cookie phiên, token) mà còn có thể chủ động sửa đổi dữ liệu truyền, giả mạo nội dung trang web hoặc tiêm mã độc vào hệ thống. Các kỹ thuật dẫn đường như ARP Spoofing, DNS Spoofing, DHCP Spoofing, ICMP Redirect, Rogue AP cùng kỹ thuật hạ cấp bảo mật SSL Stripping \cite{marlinspike2009sslstrip} đã và đang gây ra những thiệt hại nghiêm trọng.
+
+Do đó, việc nghiên cứu chuyên sâu về bản chất kỹ thuật, cơ chế khai thác của các hình thức tấn công Man-in-the-Middle, đồng thời xây dựng mô hình thực nghiệm và kiểm chứng hiệu quả của các giải pháp phòng chống hiện đại (như Dynamic ARP Inspection, DHCP Snooping, HTTPS/HSTS, VPN, hệ thống giám sát ARP) là một yêu cầu cấp thiết, mang tính thời sự cao cả về mặt học thuật lẫn ứng dụng thực tiễn.
+
+\section*{2. Ý nghĩa lý thuyết và thực tiễn của đề tài}
+
+\begin{itemize}
+  \item \textbf{Ý nghĩa lý thuyết:} Đề tài góp phần hệ thống hóa toàn diện cơ chế hoạt động của các cuộc tấn công MitM ở nhiều tầng trong mô hình OSI/TCP-IP; làm rõ mối tương quan giữa điểm yếu kiến trúc giao thức truyền thống với các giải pháp phòng thủ hiện đại; cung cấp tài liệu tham khảo có giá trị học thuật cao cho sinh viên ngành Khoa học máy tính và Chuyên ngành Mạng máy tính \& An ninh thông tin.
+  \item \textbf{Ý nghĩa thực tiễn:} Đề tài cung cấp các kịch bản kiểm thử an ninh thực tế (PoC), bộ file cấu hình chuẩn hóa cho thiết bị mạng Switch Cisco và máy chủ Web Nginx, cùng công cụ giám sát mã nguồn mở bằng Python. Các kết quả này có thể chuyển giao và áp dụng trực tiếp để bảo vệ hệ thống mạng cục bộ tại các cơ quan, trường học và doanh nghiệp vừa và nhỏ trước nguy cơ nghe lén và giả mạo dữ liệu.
+\end{itemize}
+
+\section*{3. Mục tiêu của đề tài}
+
+Đề tài đặt ra các mục tiêu cụ thể sau:
+\begin{enumerate}
+  \item \textbf{Về mặt lý thuyết:} Hệ thống hóa toàn diện cơ chế hoạt động của tấn công Man-in-the-Middle; phân tích bản chất các kỹ thuật dẫn đường luồng dữ liệu (ARP Spoofing, DNS Spoofing, DHCP Spoofing, ICMP Redirect, Rogue AP, SSL Stripping) và các kiểu tấn công khai thác phiên (Session Hijacking, Cookie Theft, Content Tampering).
+  \item \textbf{Về mặt thực nghiệm tấn công:} Thiết kế mô hình phòng thử nghiệm (Testbed Lab) gồm máy tấn công Kali Linux, các máy nạn nhân (Windows, Linux), Gateway và Web Server; hiện thực hóa thành công các kịch bản tấn công dẫn đường, đánh cắp thông tin đăng nhập và giả mạo dữ liệu.
+  \item \textbf{Về mặt giải pháp phòng thủ:} Triển khai và cấu hình các giải pháp an ninh chuyên sâu ở nhiều tầng mạng: HTTPS kết hợp HSTS, chứng chỉ số PKI, Dynamic ARP Inspection (DAI), DHCP Snooping trên thiết bị chuyển mạch Switch, thiết lập kênh mã hóa VPN và công cụ phát hiện ARP bất thường.
+  \item \textbf{Về mặt kiểm chứng và đánh giá:} Chạy lại toàn bộ các kịch bản tấn công trên môi trường đã kích hoạt phòng thủ để chứng minh tính hiệu quả, đo lường sự suy giảm lưu lượng độc hại và sự an toàn của phiên truyền.
+\end{enumerate}
+
+\section*{4. Phạm vi của đề tài}
+
+\begin{itemize}
+  \item \textbf{Đối tượng nghiên cứu:}
+    \begin{itemize}
+      \item Các giao thức mạng: ARP, DNS, DHCP, ICMP, HTTP/HTTPS, SSL/TLS, TCP/IP.
+      \item Kỹ thuật tấn công MitM: ARP Cache Poisoning, DNS Spoofing, Rogue DHCP Server, SSL Stripping, Session Hijacking, Cookie Tampering.
+      \item Cơ chế phòng vệ: Dynamic ARP Inspection (DAI), DHCP Snooping, HTTPS/HSTS (RFC 6797), VPN (WireGuard/IPsec), ARP Anomaly Detection.
+    \end{itemize}
+  \item \textbf{Giới hạn phạm vi môi trường:}
+    \begin{itemize}
+      \item Nghiên cứu được thực hiện trong môi trường phòng thử nghiệm giả lập an toàn (Isolated Testbed Lab) gồm 5 thành phần mạng độc lập.
+      \item Mọi kịch bản khai thác chỉ phục vụ mục đích học thuật, nghiên cứu cơ chế bảo mật và hoàn thiện biện pháp phòng thủ; không triển khai trên môi trường mạng sản xuất thực tế khi chưa được cấp phép.
+    \end{itemize}
+\end{itemize}
+
+\section*{5. Các phương pháp nghiên cứu}
+
+Đề tài kết hợp chặt chẽ giữa hai phương pháp:
+\begin{itemize}
+  \item \textbf{Phương pháp nghiên cứu lý thuyết:} Phân tích các tiêu chuẩn quốc tế IETF RFC, tài liệu chuyên sâu của các tổ chức an ninh mạng (OWASP, Cisco, IEEE), giáo trình mạng máy tính và an ninh thông tin chuẩn quốc tế.
+  \item \textbf{Phương pháp thực nghiệm - đo kiểm:} Xây dựng mô hình mạng thực tế ảo hóa; sử dụng công cụ chuyên dụng (Wireshark, Scapy, Kali Linux, Nginx, Cisco Catalyst Switch) để tạo lập dữ liệu, bắt gói tin, đo đạc chỉ số định lượng và ghi vết nhật ký kiểm chứng.
+\end{itemize}
+
+\section*{6. Kế hoạch thực hiện đề tài}
+
+Đề tài được triển khai trong Học kỳ 1 năm học 2026--2027 với các mốc chính:
+\begin{itemize}
+  \item \textbf{Giai đoạn 1 (Tháng 9/2026):} Nhận đề tài, khảo sát tài liệu tổng quan, xây dựng Đề cương chi tiết và thiết lập môi trường phòng thử nghiệm Testbed Lab.
+  \item \textbf{Giai đoạn 2 (Tháng 10/2026):} Nghiên cứu lý thuyết và thực nghiệm các kỹ thuật tấn công dẫn đường (ARP Poisoning, DNS Spoofing, SSL Stripping, Content Tampering); soạn thảo Chương 1 và Chương 2.
+  \item \textbf{Giai đoạn 3 (Tháng 11/2026):} Triển khai các giải pháp phòng thủ (Cisco DAI, DHCP Snooping, HTTPS/HSTS, WireGuard VPN, phát hiện ARP bất thường); thực nghiệm kiểm chứng trước và sau phòng thủ; soạn thảo Chương 3.
+  \item \textbf{Giai đoạn 4 (Tháng 12/2026):} Đánh giá định lượng kết quả, hoàn thiện toàn văn báo cáo (Chương 4), biên soạn slide Beamer và chuẩn bị nghiệm thu trước Hội đồng.
+\end{itemize}
+
+\section*{7. Bố cục của báo cáo}
+
+Ngoài phần Mở đầu, Kết luận, Tài liệu tham khảo và Phụ lục, báo cáo được kết cấu thành 4 chương chính:
+\begin{itemize}
+  \item \textbf{Chương 1: Tổng quan và cơ sở lý thuyết về tấn công Man-in-the-Middle:} Trình bày mô hình tổng quan MitM, mục tiêu tấn công, điểm yếu cố hữu của các giao thức tầng 2, tầng 3 và tầng ứng dụng.
+  \item \textbf{Chương 2: Các kỹ thuật khai thác và dẫn đường trong tấn công MitM:} Phân tích chuyên sâu cơ chế dẫn đường (ARP Spoofing, DNS Spoofing, DHCP Spoofing, ICMP Redirect, Rogue AP, SSL Stripping) và các hình thức tấn công vào phiên, cookie và toàn vẹn dữ liệu.
+  \item \textbf{Chương 3: Giải pháp phòng chống và thực nghiệm kiểm chứng:} Trình bày chi tiết kiến trúc mô hình thử nghiệm, cấu hình các giải pháp bảo vệ (HTTPS/HSTS, DAI, DHCP Snooping, VPN, giám sát ARP) và kết quả kiểm chứng trước/sau phòng thủ.
+  \item \textbf{Chương 4: Kết luận và hướng phát triển:} Tổng kết các kết quả đạt được của đề tài, nêu rõ những mặt hạn chế và đề xuất các định hướng nghiên cứu tiếp theo.
+\end{itemize}

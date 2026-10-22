@@ -1,0 +1,18 @@
+\chapter*{LỜI DẪN (TÓM TẮT ĐỀ TÀI)}
+\addcontentsline{toc}{chapter}{Lời dẫn (Tóm tắt đề tài)}
+
+Tấn công Man-in-the-Middle (MitM) --- Kẻ đứng ở giữa --- là một trong những hiểm họa an ninh mạng nguy hiểm và dai dẳng nhất đối với các hệ thống mạng máy tính hiện đại. Bằng việc can thiệp trái phép vào luồng truyền thông giữa hai thực thể tin cậy, kẻ tấn công có thể thực hiện nghe lén thông tin nhạy cảm, đánh cắp định danh tài khoản, chiếm đoạt phiên làm việc và giả mạo dữ liệu mà người dùng khó lòng phát hiện.
+
+Đề tài \textbf{``Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle''} được thực hiện nhằm hệ thống hóa cơ sở lý thuyết, phân tích chuyên sâu các điểm yếu cố hữu trong thiết kế của các giao thức mạng nền tảng (ARP, DNS, DHCP, HTTP), từ đó làm sáng tỏ cơ chế hoạt động của 6 kỹ thuật dẫn đường lưu lượng phổ biến (ARP Spoofing, DNS Spoofing, DHCP Spoofing, ICMP Redirect, Rogue AP, SSL Stripping) và các hình thức khai thác dữ liệu phiên (Session Hijacking, Cookie Theft, Tampering).
+
+Trên cơ sở đó, đề tài xây dựng một mô hình phòng thử nghiệm (Testbed Lab) thực tế gồm 5 thành phần mạng độc lập (Kali Linux, hai máy trạm nạn nhân Windows/Linux, Gateway router và Web Server Nginx tích hợp ứng dụng kiểm thử DVWA). Đề tài đã hiện thực hóa thành công các kịch bản khai thác an ninh thực tế (PoC), phân tích trực quan cấu trúc gói tin độc hại trên Wireshark.
+
+Quan trọng hơn, đề tài đi sâu nghiên cứu, cấu hình và đánh giá định lượng hiệu quả của 5 giải pháp phòng thủ đa tầng:
+\begin{enumerate}
+  \item Triển khai giao thức HTTPS với tiêu đề bảo mật nghiêm ngặt Strict-Transport-Security (HSTS, RFC 6797) trên máy chủ Web Nginx, vô hiệu hóa hoàn toàn kỹ thuật tấn công hạ cấp SSL Stripping.
+  \item Cấu hình cơ chế Dynamic ARP Inspection (DAI) kết hợp DHCP Snooping trên thiết bị chuyển mạch Switch Cisco Catalyst, ngăn chặn 100\% các gói tin ARP đầu độc và DHCP giả mạo tại cổng truy cập tầng 2.
+  \item Thiết lập đường hầm mạng riêng ảo VPN mã hóa đầu cuối WireGuard, bảo vệ tuyệt đối lưu lượng người dùng trước mọi hành vi bắt trộm gói tin trong mạng nội bộ.
+  \item Xây dựng công cụ giám sát tự động bằng ngôn ngữ Python giúp phát hiện và cảnh báo tức thời các biến động địa chỉ MAC bất thường (ARP Flapping).
+\end{enumerate}
+
+Kết quả thực nghiệm kiểm chứng bằng cách chạy lại toàn bộ các đợt tấn công trên môi trường phòng thủ đã chứng minh các nguy cơ MitM đều bị triệt tiêu hoàn toàn, bảo đảm tính bí mật, toàn vẹn và xác thực cho hạ tầng mạng doanh nghiệp và trường học.

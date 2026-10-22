@@ -1,0 +1,20 @@
+# Chuan hoa xuong dong: trong repo luon la LF, tren may Windows Git tu doi lai.
+* text=auto eol=lf
+
+# Tep nhi phan: khong doi xuong dong, khong hien diff dang van ban.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.pdf   binary
+*.xlsx  binary
+*.docx  binary
+*.pptx  binary
+*.zip   binary
+
+# Script shell phai la LF, neu khong se loi khi chay tren Linux va trong CI.
+*.sh    text eol=lf
+
+# Diff de doc hon cho LaTeX va Python.
+*.tex   text diff=tex
+*.py    text diff=python

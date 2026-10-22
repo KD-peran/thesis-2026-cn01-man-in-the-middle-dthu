@@ -1,0 +1,71 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.nav
+*.snm
+*.out
+*.toc
+*.vrb
+*.bbl
+*.blg
+*.bcf
+*.lof
+*.lot
+*.run.xml
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+
+# Thu muc build tam
+latex/outputs/
+build/
+.temp*
+
+# Office temp files
+~$*.docx
+~$*.xlsx
+~$*.pptx
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node / JavaScript
+node_modules/
+dist/
+.next/
+*.tsbuildinfo
+
+# .NET
+bin/
+obj/
+*.user
+
+# Bien moi truong va bi mat - khong bao gio commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+appsettings.Development.json
+
+# File dump va packet capture nang (>50MB)
+*.pcap
+*.pcapng
+*.dump
+*.db
+*.sqlite
+
+# He dieu hanh / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/
+
+# PDF tam sinh ra truc tiep trong latex/ (giu lai docs/downloads/*.pdf)
+latex/*.pdf

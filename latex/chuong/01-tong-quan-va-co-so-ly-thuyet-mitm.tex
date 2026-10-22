@@ -1,0 +1,100 @@
+\chapter{TỔNG QUAN VÀ CƠ SỞ LÝ THUYẾT VỀ TẤN CÔNG MAN-IN-THE-MIDDLE}
+
+\section{Khái niệm tấn công Man-in-the-Middle (MitM)}
+
+Tấn công Man-in-the-Middle (viết tắt là MitM --- Kẻ đứng ở giữa) là một hình thức tấn công an ninh mạng trong đó kẻ tấn công bí mật chèn mình vào vị trí trung gian giữa hai thực thể đang truyền thông với nhau (ví dụ: giữa máy tính người dùng và máy chủ dịch vụ, hoặc giữa máy tính người dùng và cổng mặc định Gateway) \cite{callegati2009mitm, alani2014mitm}.
+
+Trong một phiên liên lạc thông thường, hai bên tin tưởng rằng họ đang kết nối trực tiếp với nhau theo mô hình điểm - điểm (Point-to-Point). Tuy nhiên, khi xảy ra tấn công MitM, kẻ tấn công sẽ kiểm soát toàn bộ luồng lưu lượng truyền qua. Đối với bên gửi, kẻ tấn công đóng vai là bên nhận hợp lệ; và ngược lại, đối với bên nhận, kẻ tấn công lại giả mạo là bên gửi ban đầu. Do luồng dữ liệu vẫn tiếp tục được chuyển tiếp giữa hai bên nên nạn nhân thường hoàn toàn không hay biết rằng phiên làm việc của mình đang bị giám sát hoặc can thiệp.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[scale=0.9, every node/.style={transform shape}]
+    % Bình thường
+    \node[draw, rectangle, fill=blue!10, minimum width=2.5cm, minimum height=1cm, rounded corners] (client1) at (0,3) {Nạn nhân (Client)};
+    \node[draw, rectangle, fill=green!10, minimum width=2.5cm, minimum height=1cm, rounded corners] (server1) at (9,3) {Máy chủ (Server)};
+    \draw[<->, >=Stealth, line width=1.5pt, blue!70!black] (client1) -- node[above]{\textbf{Kết nối trực tiếp an toàn}} (server1);
+    \node at (4.5, 3.7) {\textit{(a) Phiên truyền thông bình thường}};
+
+    % Bị MitM
+    \node[draw, rectangle, fill=blue!10, minimum width=2.5cm, minimum height=1cm, rounded corners] (client2) at (0,0) {Nạn nhân (Client)};
+    \node[draw, rectangle, fill=red!20, minimum width=2.5cm, minimum height=1.2cm, rounded corners, line width=1.2pt, red!80!black, align=center] (attacker) at (4.5,0) {\textbf{Attacker (MitM)}\\\footnotesize(Nghe lén, Chỉnh sửa)};
+    \node[draw, rectangle, fill=green!10, minimum width=2.5cm, minimum height=1cm, rounded corners] (server2) at (9,0) {Máy chủ (Server)};
+    
+    \draw[<->, >=Stealth, line width=1.5pt, red!70!black] (client2) -- node[above]{\footnotesize Kết nối bị lừa} (attacker);
+    \draw[<->, >=Stealth, line width=1.5pt, red!70!black] (attacker) -- node[above]{\footnotesize Chuyển tiếp / Giả mạo} (server2);
+    \node at (4.5, -1.0) {\textit{(b) Phiên truyền thông bị can thiệp bởi Kẻ đứng ở giữa}};
+  \end{tikzpicture}
+  \caption{Mô hình so sánh truyền thông bình thường và truyền thông bị tấn công MitM}
+  \label{fig:mitm-concept}
+\end{figure}
+
+\section{Mục tiêu và phân loại tấn công MitM}
+
+\subsection{Mục tiêu của kẻ tấn công}
+
+Kẻ tấn công thực hiện kỹ thuật MitM nhằm hướng tới các mục tiêu chính sau:
+\begin{enumerate}
+  \item \textbf{Nghe lén (Traffic Eavesdropping):} Thu thập toàn bộ các dữ liệu truyền qua mạng ở dạng bản rõ (cleartext), bao gồm: tài khoản, mật khẩu đăng nhập, thông tin thẻ tín dụng, nội dung email, tin nhắn trò chuyện hoặc dữ liệu nội bộ doanh nghiệp.
+  \item \textbf{Đánh cắp định danh và phiên (Credential \& Session Theft):} Trích xuất các Cookie xác thực (Session Cookies), Access Tokens, JSON Web Tokens (JWT) của người dùng để chiếm quyền truy cập hệ thống mà không cần bẻ khóa mật khẩu \cite{kurose2021computer}.
+  \item \textbf{Giả mạo nội dung (Content Tampering / Injection):} Can thiệp thay đổi nội dung trang web hoặc dữ liệu trong luồng gói tin theo thời gian thực; chèn mã JavaScript độc hại (Cross-Site Scripting hoặc BeEF Hook) vào trình duyệt của nạn nhân.
+  \item \textbf{Chuyển hướng lưu lượng độc hại (Traffic Redirection):} Ép buộc nạn nhân truy cập vào các máy chủ giả mạo (Phishing Server) có giao diện giống hệt trang đăng nhập thật để đánh lừa người dùng.
+  \item \textbf{Từ chối dịch vụ có chọn lọc (Selective DoS):} Tiêu hủy hoặc làm sai lệch gói tin giữa hai bên khiến dịch vụ của nạn nhân bị gián đoạn hoặc ngắt kết nối bất thường.
+\end{enumerate}
+
+\subsection{Phân loại các pha trong một cuộc tấn công MitM}
+
+Một cuộc tấn công Man-in-the-Middle hoàn chỉnh thường trải qua hai pha kỹ thuật kế tiếp nhau:
+\begin{itemize}
+  \item \textbf{Pha 1: Dẫn đường / Bắt giữ luồng lưu lượng (Traffic Interception / Redirection):} Kẻ tấn công sử dụng các kỹ thuật ở tầng 2 hoặc tầng 3 để làm sai lệch bảng định tuyến hoặc bảng phân giải địa chỉ của các nút mạng, buộc các gói tin trao đổi giữa nạn nhân và đích phải đi qua card mạng của máy tấn công.
+  \item \textbf{Pha 2: Khai thác nội dung và điều khiển phiên (Traffic Manipulation / Exploitation):} Sau khi đã nắm giữ luồng gói tin, kẻ tấn công tiến hành phân tích giao thức, giải mã dữ liệu (nếu có thể), hạ cấp chuẩn bảo mật (như SSL Stripping), trích xuất thông tin nhạy cảm hoặc chỉnh sửa nội dung gói tin trước khi chuyển tiếp đến đích cuối.
+\end{itemize}
+
+\section{Cơ sở các giao thức mạng và các điểm tổn thương cố hữu}
+
+\subsection{Giao thức phân giải địa chỉ ARP (RFC 826)}
+
+Giao thức Address Resolution Protocol (ARP) được định nghĩa trong RFC 826 \cite{rfc826_arp}, có nhiệm vụ ánh xạ địa chỉ IP tầng mạng (Layer 3) sang địa chỉ MAC vật lý tầng liên kết dữ liệu (Layer 2) trong mạng cục bộ Ethernet.
+
+Quá trình phân giải thông thường diễn ra như sau:
+\begin{enumerate}
+  \item Khi máy $A$ muốn gửi gói tin IP cho máy $B$ cùng dải mạng nhưng chưa biết địa chỉ MAC của $B$, máy $A$ sẽ phát quảng bá một thông điệp \textbf{ARP Request} (Broadcast đến địa chỉ MAC \texttt{FF:FF:FF:FF:FF:FF}): \textit{``Ai có IP $B$, hãy báo cho IP $A$ biết địa chỉ MAC!''}.
+  \item Mọi thiết bị trong vùng quảng bá đều nhận được gói tin, nhưng chỉ có máy $B$ sở hữu địa chỉ IP trùng khớp mới phản hồi lại bằng gói tin \textbf{ARP Reply} (Unicast gửi riêng cho máy $A$): \textit{``Tôi là IP $B$, địa chỉ MAC của tôi là $MAC_B$''}.
+  \item Máy $A$ lưu cặp ánh xạ $(IP_B, MAC_B)$ vào bộ đệm tạm thời gọi là **ARP Cache** để sử dụng cho các lần gửi sau mà không cần hỏi lại.
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \fbox{
+    \begin{minipage}{0.9\textwidth}
+      \textbf{Điểm yếu chí mạng của giao thức ARP (RFC 826):}
+      \begin{itemize}
+        \item \textbf{Không có cơ chế xác thực (Stateless \& Unauthenticated):} Thiết bị nhận gói ARP Reply mà không hề kiểm tra xem trước đó mình có gửi ARP Request hay không.
+        \item \textbf{Chấp nhận cập nhật tự nguyện (Gratuitous ARP):} Bất kỳ máy nào cũng có thể tự ý gửi gói tin ARP Reply và các máy khác trong mạng sẽ mù quáng cập nhật lại bảng ARP Cache của mình.
+      \end{itemize}
+    \end{minipage}
+  }
+  \caption{Điểm yếu cố hữu của giao thức ARP}
+  \label{fig:arp-weakness}
+\end{figure}
+
+\subsection{Hệ thống phân giải tên miền DNS (RFC 1035)}
+
+Hệ thống DNS (Domain Name System) chuyển đổi các tên miền dễ nhớ (như \texttt{dthu.edu.vn}) thành các địa chỉ IP số học (như \texttt{103.x.x.x}) \cite{rfc1035_dns}. Giao thức DNS mặc định sử dụng cổng UDP 53 để truyền nhận các bản tin truy vấn (\texttt{DNS Query}) và bản tin trả lời (\texttt{DNS Response}).
+
+Do sử dụng giao thức UDP không hướng kết nối và thiếu cơ chế ký số nguồn gốc (trừ khi có DNSSEC), bên hỏi chỉ dựa vào một trường mã định danh giao dịch ngẫu nhiên 16-bit gọi là \textbf{Transaction ID} để khớp bản tin phản hồi với bản tin yêu cầu. Nếu kẻ tấn công đứng ở giữa đường truyền hoặc dự đoán được Transaction ID, chúng có thể gửi bản tin DNS Response giả mạo nhanh hơn máy chủ DNS gốc để ép máy nạn nhân truy cập vào IP do kẻ tấn công chỉ định.
+
+\subsection{Giao thức cấu hình máy chủ động DHCP (RFC 2131)}
+
+Giao thức DHCP \cite{rfc2131_dhcp} giúp tự động gán địa chỉ IP, Subnet Mask, Default Gateway và địa chỉ máy chủ DNS cho các máy tính khi tham gia vào mạng nội bộ thông qua chu trình 4 bước: \textbf{DORA} (\textit{Discover, Offer, Request, Acknowledge}).
+
+Tất cả các gói tin khởi tạo DHCP Discover từ client đều là gói tin quảng bá tầng 2. Trong môi trường không có kiểm soát, bất kỳ máy tính nào cũng có thể đóng vai trò máy chủ DHCP lậu (\textbf{Rogue DHCP Server}) và phản hồi gói \texttt{DHCP Offer} kèm địa chỉ Default Gateway chính là IP của kẻ tấn công. Do đặc tính của client là thường chấp nhận lời đề nghị DHCP Offer đến sớm nhất, kẻ tấn công dễ dàng chiếm đoạt toàn bộ luồng định tuyến ra ngoài internet của nạn nhân.
+
+\subsection{Giao thức truyền siêu văn bản HTTP và HTTPS}
+
+Giao thức HTTP truyền tải toàn bộ tiêu đề (Headers), dữ liệu thân (Body), Cookie và tham số truy vấn ở dạng văn bản thuần túy không mã hóa. Bất kỳ nút mạng trung gian nào cũng có thể đọc và sửa đổi gói tin HTTP bằng các công cụ bắt gói như Wireshark \cite{wireshark2024guide}.
+
+Giao thức HTTPS \cite{rfc8446_tls13} khắc phục nhược điểm trên bằng cách bổ sung thêm một lớp bảo mật Transport Layer Security (TLS) bên dưới HTTP. Toàn bộ phiên truyền thông được mã hóa bằng các thuật toán mã hóa đối xứng (AES, ChaCha20) và khóa bí mật được trao đổi thông qua mật mã bất đối xứng dựa trên chứng chỉ số X.509. Tuy nhiên, nếu phía máy chủ hoặc trình duyệt chưa được cấu hình các cơ chế phòng vệ nghiêm ngặt (như HSTS), kẻ tấn công MitM vẫn có thể triển khai kỹ thuật hạ cấp giao thức SSL Stripping để vô hiệu hóa lớp bảo vệ này.
+
+\section{Tổng kết chương}
+
+Tấn công Man-in-the-Middle là mối hiểm họa nghiêm trọng bắt nguồn từ các lỗ hổng mang tính lịch sử của hạ tầng mạng TCP/IP. Để có thể phòng chống một cách bài bản, việc hiểu sâu sắc từng kỹ thuật dẫn đường và phương thức thao túng phiên dữ liệu là nền tảng tối quan trọng. Chương 2 sẽ đi sâu phân tích chi tiết các kỹ thuật khai thác này.

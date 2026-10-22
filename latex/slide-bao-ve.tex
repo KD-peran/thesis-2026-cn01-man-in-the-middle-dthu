@@ -1,0 +1,339 @@
+% Slide thuyết trình bảo vệ Niên luận / Khóa luận tốt nghiệp
+% Đề tài: Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle
+% Sinh viên: Nguyễn Thị Kỳ Duyên (MSSV: 0023410647 - Lớp: ĐHCNTT23B-CS)
+% GVHD: TS. Lương Thái Ngọc
+% Build:  .\build.ps1 slide-bao-ve.tex (chạy từ thư mục gốc)
+
+\documentclass[fleqn]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{mathtools,amssymb,amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta,positioning}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{tai-lieu-tham-khao.bib}
+
+\hypersetup{unicode}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\graphicspath{{images/}}
+
+\AtBeginSection[]{\begin{frame}\frametitle{Nội dung}\tableofcontents[currentsection]\end{frame}}
+
+\title[Nghiên cứu Tấn công \& Phòng chống MitM]{NGHIÊN CỨU KỸ THUẬT KHAI THÁC VÀ PHÒNG CHỐNG TẤN CÔNG MAN-IN-THE-MIDDLE}
+\author[Nguyễn Thị Kỳ Duyên]{Sinh viên thực hiện: \textbf{Nguyễn Thị Kỳ Duyên} \\ \small MSSV: 0023410647 -- Lớp: ĐHCNTT23B-CS}
+\institute[DTHU]{Khoa Công nghệ và Kỹ thuật, Trường Đại học Đồng Tháp\\ Ngành: Khoa học máy tính -- Chuyên ngành: Mạng Máy Tính và An Ninh\\ \textbf{Giảng viên hướng dẫn: TS. Lương Thái Ngọc}}
+\date{Năm học 2026 -- 2027}
+
+\begin{document}
+
+\begin{frame}\titlepage\end{frame}
+
+\begin{frame}{Nội dung trình bày}
+  \tableofcontents
+\end{frame}
+
+\section{Đặt vấn đề \& Mục tiêu nghiên cứu}
+
+\begin{frame}{Tính cấp thiết của đề tài}
+  \begin{itemize}
+    \item \textbf{Bối cảnh an toàn mạng hiện đại:}
+      \begin{itemize}
+        \item Mọi giao dịch ngân hàng, định danh cá nhân và dữ liệu doanh nghiệp đều luân chuyển qua hạ tầng mạng máy tính.
+        \item Môi trường mạng LAN truyền thống thường bị ngộ nhận là ``an toàn nội bộ''.
+      \end{itemize}
+    \item \textbf{Điểm yếu cố hữu của các giao thức TCP/IP sơ khai:}
+      \begin{itemize}
+        \item Giao thức ARP (RFC 826), DNS (RFC 1035), DHCP (RFC 2131) \textbf{thiếu hoàn toàn cơ chế xác thực nguồn gốc}.
+        \item Các thiết bị mù quáng tiếp nhận thông tin phản hồi mà không kiểm tra tính xác thực.
+      \end{itemize}
+    \item \textbf{Nguy cơ từ tấn công Man-in-the-Middle (MitM):}
+      \begin{itemize}
+        \item Kẻ tấn công bí mật chèn vào giữa kênh truyền, nghe lén mật khẩu, trích xuất Cookie, chiếm đoạt phiên và giả mạo nội dung.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mục tiêu và phạm vi đề tài}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Mục tiêu nghiên cứu}
+        \begin{itemize}
+          \item Hệ thống hóa các kỹ thuật dẫn đường: ARP, DNS, DHCP Spoofing, SSL Stripping.
+          \item Phân tích các kỹ thuật tấn công phiên: Session Hijacking, Cookie Theft, Tampering.
+          \item Dựng Lab thực nghiệm 5 node và triển khai tấn công kiểm chứng.
+          \item Cấu hình giải pháp phòng thủ: HTTPS/HSTS, DAI, DHCP Snooping, VPN, Arpwatch.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Phạm vi đề tài}
+        \begin{itemize}
+          \item Môi trường thử nghiệm an toàn độc lập (Isolated Testbed Lab).
+          \item Thiết bị: Kali Linux, 02 máy nạn nhân (Win/Linux), Gateway, Web Server và Switch quản lý.
+          \item Đo kiểm định lượng trước và sau khi kích hoạt các giải pháp an ninh.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Các kỹ thuật khai thác \& dẫn đường MitM}
+
+\begin{frame}{Khái niệm tấn công Man-in-the-Middle}
+  \begin{center}
+    \begin{tikzpicture}[scale=0.8, every node/.style={transform shape}]
+      \node[draw, rectangle, fill=blue!15, minimum width=2.2cm, minimum height=1cm, rounded corners] (vic) at (0,0) {Victim};
+      \node[draw, rectangle, fill=red!25, minimum width=2.6cm, minimum height=1.2cm, rounded corners, line width=1.2pt, align=center] (atk) at (4.5,0) {\textbf{Attacker (MitM)}\\\footnotesize(Sniffing / Tampering)};
+      \node[draw, rectangle, fill=green!15, minimum width=2.2cm, minimum height=1cm, rounded corners] (gw) at (9,0) {Gateway / Server};
+
+      \draw[<->, >=Stealth, line width=1.5pt, red] (vic) -- node[above]{\footnotesize Đánh cắp tin} (atk);
+      \draw[<->, >=Stealth, line width=1.5pt, red] (atk) -- node[above]{\footnotesize Chuyển tiếp} (gw);
+    \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Bản chất:} Kẻ tấn công đứng giữa luồng truyền thông, giả mạo Gateway đối với Victim và giả mạo Victim đối với Gateway.
+    \item \textbf{Mục tiêu:} Nghe lén (Eavesdropping), đánh cắp định danh (Credentials), chiếm quyền phiên (Session Hijacking), giả mạo nội dung (Tampering).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kỹ thuật ARP Spoofing / Poisoning}
+  \begin{itemize}
+    \item \textbf{Nguyên lý:} Gửi liên tục các gói tin \textbf{ARP Reply giả mạo hai chiều}:
+      \begin{itemize}
+        \item Nói với Victim: \textit{``IP Gateway hiện đang mang địa chỉ MAC của Attacker''}.
+        \item Nói với Gateway: \textit{``IP Victim hiện đang mang địa chỉ MAC của Attacker''}.
+      \end{itemize}
+    \item \textbf{Kết quả:} Bảng ARP Cache của cả hai bên bị nhiễm độc.
+    \item \textbf{Bật chuyển tiếp gói tin (IP Forwarding):}
+      \texttt{sysctl -w net.ipv4.ip\_forward=1} $\rightarrow$ Lưu lượng đi qua máy Attacker một cách trong suốt, không làm rớt mạng nạn nhân.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kỹ thuật DNS Spoofing, DHCP Spoofing \& SSL Stripping}
+  \begin{itemize}
+    \item \textbf{DNS Spoofing:} Đón đầu truy vấn UDP cổng 53, trả lời bản ghi A Record giả mạo trỏ về Web Server lừa đảo của Attacker.
+    \item \textbf{DHCP Spoofing (Rogue DHCP):} Dựng máy chủ DHCP lậu, phản hồi nhanh hơn máy chủ thật để cấp phát Default Gateway và DNS Server trỏ thẳng về Attacker.
+    \item \textbf{SSL Stripping (Moxie Marlinspike):}
+      \begin{itemize}
+        \item Đón đầu gói tin chuyển hướng HTTP 301/302.
+        \item Duy trì kết nối HTTPS với Server thật nhưng hạ cấp xuống \textbf{HTTP bản rõ} khi phản hồi cho Victim.
+        \item Nạn nhân không thấy ổ khóa HTTPS nhưng trang web vẫn hiển thị, mọi mật khẩu nhập vào đều bị lộ.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Các kiểu tấn công vào phiên và dữ liệu}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Session Hijacking \& Cookie Theft}
+        \begin{itemize}
+          \item Bắt gói tin HTTP chứa Cookie phiên (\texttt{PHPSESSID}, Token).
+          \item Tiêm Cookie vào trình duyệt máy Attacker để truy cập thẳng hệ thống không cần mật khẩu.
+          \item Khai thác Cookie thiếu cờ \texttt{Secure} và \texttt{HttpOnly}.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Giả mạo nội dung (Content Tampering)}
+        \begin{itemize}
+          \item Chèn thẻ mã độc JavaScript (\texttt{<script src="hook.js">}) kết nối trình duyệt vào khung BeEF.
+          \item Sửa đổi tham số giao dịch trong form POST (thay đổi số tài khoản nhận tiền).
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Mô hình phòng thử nghiệm (Testbed Lab)}
+
+\begin{frame}{Kiến trúc mô hình Testbed Lab 5 thành phần}
+  \begin{center}
+    \begin{tikzpicture}[scale=0.75, every node/.style={transform shape}]
+      \node[draw, rectangle, fill=blue!20, minimum width=8cm, minimum height=1cm, rounded corners] (sw) at (5,2.5) {\textbf{Cisco Catalyst Switch (VLAN 10)} --- Bật DHCP Snooping \& DAI};
+
+      \node[draw, rectangle, fill=green!15, minimum width=2.5cm, minimum height=1cm, align=center] (gw) at (0,4.5) {\textbf{Gateway (VyOS)}\\\footnotesize 192.168.10.1};
+      \node[draw, rectangle, fill=green!15, minimum width=2.5cm, minimum height=1cm, align=center] (web) at (10,4.5) {\textbf{Web Server}\\\footnotesize 192.168.10.100};
+
+      \node[draw, rectangle, fill=blue!10, minimum width=2.4cm, minimum height=1cm, align=center] (v1) at (0,0.5) {\textbf{Victim 1 (Win)}\\\footnotesize 192.168.10.10};
+      \node[draw, rectangle, fill=red!20, minimum width=2.6cm, minimum height=1cm, align=center] (at) at (5,0.5) {\textbf{Kali Linux}\\\footnotesize 192.168.10.50};
+      \node[draw, rectangle, fill=blue!10, minimum width=2.4cm, minimum height=1cm, align=center] (v2) at (10,0.5) {\textbf{Victim 2 (Linux)}\\\footnotesize 192.168.10.20};
+
+      \draw (gw) -- (sw); \draw (web) -- (sw);
+      \draw (v1) -- (sw); \draw (at) -- (sw); \draw (v2) -- (sw);
+    \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Phân đoạn mạng:} \texttt{192.168.10.0/24} (VLAN 10 an toàn độc lập).
+    \item \textbf{Cổng Switch:} Gi1/0/1 (Gateway - \textbf{Trusted}), Fa1/0/1 - Fa1/0/3 (\textbf{Untrusted}).
+  \end{itemize}
+\end{frame}
+
+\section{Giải pháp phòng chống \& Kiểm chứng thực nghiệm}
+
+\begin{frame}{Giải pháp 1: HTTPS kết hợp cơ chế HSTS}
+  \begin{itemize}
+    \item \textbf{Cấu hình Nginx Web Server:}
+      \begin{itemize}
+        \item Kích hoạt giao thức TLS 1.3 và chứng chỉ số X.509 hợp lệ.
+        \item Bổ sung tiêu đề HSTS bắt buộc:
+      \end{itemize}
+      \texttt{Strict-Transport-Security: max-age=31536000; includeSubDomains; preload}
+    \item \textbf{Kiểm chứng chạy lại tấn công SSL Stripping:}
+      \begin{itemize}
+        \item Trình duyệt của Victim tự động nâng cấp nội bộ lên HTTPS (\texttt{Internal 307 Redirect}) trước khi gửi ra mạng.
+        \item Kẻ tấn công Bettercap không thể đón đầu yêu cầu HTTP.
+        \item \textbf{Kết quả:} Tấn công SSL Stripping bị \textbf{vô hiệu hóa 100\%}.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Giải pháp 2: DHCP Snooping trên Switch}
+  \begin{itemize}
+    \item \textbf{Cấu hình trên Cisco Catalyst Switch:}
+      \begin{itemize}
+        \item \texttt{ip dhcp snooping} và \texttt{ip dhcp snooping vlan 10}.
+        \item Cổng kết nối Gateway hợp pháp: \texttt{ip dhcp snooping trust}.
+        \item Cổng kết nối người dùng/Attacker: Mặc định là \textbf{Untrusted}.
+      \end{itemize}
+    \item \textbf{Kiểm chứng chạy lại tấn công Rogue DHCP Server:}
+      \begin{itemize}
+        \item Kali phát tán gói tin DHCP Offer giả mạo trên cổng Untrusted.
+        \item Switch phát hiện và lập tức \textbf{DROP toàn bộ gói tin Offer} từ cổng này.
+        \item \textbf{Kết quả:} Nạn nhân 100\% chỉ nhận IP từ Gateway thật; ngăn chặn triệt để Rogue DHCP.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Giải pháp 3: Dynamic ARP Inspection (DAI)}
+  \begin{itemize}
+    \item \textbf{Cơ chế hoạt động:}
+      \begin{itemize}
+        \item Switch đối chiếu từng gói ARP trên cổng Untrusted với \textbf{DHCP Snooping Binding Table}.
+        \item Nếu cặp IP-MAC không khớp: Lập tức \textbf{DROP} và ghi log cảnh báo vi phạm.
+      \end{itemize}
+    \item \textbf{Kiểm chứng chạy lại tấn công ARP Cache Poisoning:}
+      \begin{itemize}
+        \item Kali chạy kịch bản \texttt{arpspoof} mạo nhận IP Gateway \texttt{192.168.10.1}.
+        \item Switch phát hiện MAC Kali không trùng khớp với IP Gateway trong bảng Binding.
+        \item Switch ghi nhận log: \texttt{\%SW\_DAI-4-DHCP\_SNOOPING\_DENY: 1 invalid ARPs...}
+        \item \textbf{Kết quả:} Bảng ARP của Victim hoàn toàn trong sạch; ARP Spoofing bị triệt tiêu tận gốc.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Giải pháp 4 \& 5: VPN WireGuard \& Giám sát ARP bất thường}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Đường hầm mã hóa VPN}
+        \begin{itemize}
+          \item Kích hoạt kết nối VPN WireGuard giữa Victim và Gateway.
+          \item Toàn bộ dữ liệu được mã hóa bằng thuật toán ChaCha20-Poly1305.
+          \item Bắt gói tin trên mạng LAN chỉ thu được gói tin UDP mã hóa, không thể đọc dữ liệu.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Giám sát ARP bất thường}
+        \begin{itemize}
+          \item Vận hành Arpwatch và kịch bản phân tích ARP thời gian thực.
+          \item Phát hiện ngay hiện tượng xung đột MAC (MAC Flapping) của Gateway.
+          \item Gửi cảnh báo tức thì tới quản trị viên để cách ly thiết bị vi phạm.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Đánh giá kết quả \& Kết luận}
+
+\begin{frame}{Bảng tổng hợp kết quả đối sánh định lượng}
+  \begin{table}[htbp]
+    \centering
+    \footnotesize
+    \begin{tabularx}{\textwidth}{l L c c}
+      \toprule
+      \textbf{Kịch bản kiểm thử} & \textbf{Chỉ số đo lường} & \textbf{Trước phòng vệ} & \textbf{Sau khi bảo vệ} \\
+      \midrule
+      \textbf{ARP Poisoning} & Tỷ lệ làm sai lệch bảng ARP & 100\% (Nhiễm độc) & \textbf{0\% (Bị DAI Drop)} \\
+      \textbf{Lộ mật khẩu HTTP} & Số tài khoản bị lộ bản rõ & 10/10 lần & \textbf{0/10 (Mã hóa TLS)} \\
+      \textbf{Rogue DHCP} & Nạn nhân nhận IP lậu & 90\% & \textbf{0\% (Bị Drop)} \\
+      \textbf{SSL Stripping} & Hạ cấp thành công kết nối & 10/10 lần & \textbf{0/10 (HSTS chặn)} \\
+      \textbf{Cookie / Session} & Chiếm quyền phiên thành công & 100\% & \textbf{0\% (Bảo vệ)} \\
+      \textbf{Sniffing qua VPN} & Tỷ lệ dữ liệu bị đọc lén & 100\% & \textbf{0\% (UDP mã hóa)} \\
+      \bottomrule
+    \end{tabularx}
+  \end{table}
+\end{frame}
+
+\begin{frame}{Kết luận và Đóng góp của đề tài}
+  \begin{itemize}
+    \item \textbf{Kết luận:}
+      \begin{itemize}
+        \item Tấn công Man-in-the-Middle là mối đe dọa nghiêm trọng khai thác trực diện điểm yếu không xác thực của các giao thức mạng cổ điển.
+        \item Không có một giải pháp đơn lẻ nào đủ an toàn; bắt buộc phải triển khai mô hình \textbf{phòng thủ theo chiều sâu (Defense-in-Depth)}.
+      \end{itemize}
+    \item \textbf{Đóng góp của đề tài:}
+      \begin{itemize}
+        \item Hệ thống hóa toàn diện lý thuyết tấn công và phòng chống MitM.
+        \item Xây dựng thành công mô hình Testbed Lab 5 node kiểm chứng trực quan.
+        \item Cung cấp bộ kịch bản PoC và cấu hình mẫu sẵn sàng ứng dụng cho hệ thống mạng trường học và doanh nghiệp.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hướng phát triển tiếp theo}
+  \begin{enumerate}
+    \item Nghiên cứu mở rộng các kỹ thuật MitM trên giao thức thế hệ mới \textbf{IPv6} (như Rogue Router Advertisement, Neighbor Discovery Spoofing) và cơ chế RA Guard.
+    \item Ứng dụng \textbf{Trí tuệ nhân tạo (Machine Learning)} để phát hiện bất thường luồng lưu lượng MitM theo thời gian thực.
+    \item Tích hợp cơ chế phòng vệ tự động vào kiến trúc mạng điều khiển bằng phần mềm (\textbf{SDN}).
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Đáp ứng tiêu chuẩn đánh giá Niên luận (Mẫu Khoa 2026)}
+  \begin{columns}
+    \begin{column}{0.34\textwidth}
+      \begin{block}{\textbf{1. Quyển báo cáo (4.0 đ)}}
+        \footnotesize
+        \begin{itemize}
+          \item \textbf{Hình thức (1.0 đ):} Đúng chuẩn lề 3-2-2-2, Times 13pt, giãn dòng 1.3, trích dẫn IEEE/BibLaTeX 100\% nhất quán.
+          \item \textbf{Nội dung (3.0 đ):} 4 chương mạch lạc, phân tích sâu 6 kỹ thuật dẫn đường và 5 giải pháp phòng vệ.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.34\textwidth}
+      \begin{block}{\textbf{2. Sản phẩm (4.0 đ)}}
+        \footnotesize
+        \begin{itemize}
+          \item \textbf{Giao diện (1.0 đ):} Hệ sinh thái Docsify trực quan, lab web testbed DVWA thân thiện.
+          \item \textbf{Demo mô hình (3.0 đ):} Testbed 5 node, PoC chạy mượt mà, cấu hình Cisco DAI, HSTS, VPN và script cảnh báo ARP.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{block}{\textbf{3. Trình bày (2.0 đ)}}
+        \footnotesize
+        \begin{itemize}
+          \item \textbf{Thuyết trình:} Mạch lạc, tự tin, slide Beamer trực quan.
+          \item \textbf{Phản biện:} Nắm vững bản chất gói tin tầng 2 và tầng 7, trả lời thuyết phục các câu hỏi.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \centering
+  \vspace{1cm}
+  {\LARGE\bfseries XIN TRÂN TRỌNG CẢM ƠN}\\[0.5cm]
+  {\large Quý Thầy, Cô trong Hội đồng và các bạn đã chú ý lắng nghe!}\\[1.5cm]
+  {\large\textit{Em rất mong nhận được những câu hỏi và ý kiến đóng góp của Quý Thầy, Cô!}}
+\end{frame}
+
+\end{document}

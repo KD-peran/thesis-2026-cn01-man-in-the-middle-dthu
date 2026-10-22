@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(diff:*)",
+      "Bash(pdflatex:*)",
+      "Bash(biber:*)",
+      "Bash(bash scripts/build.sh:*)",
+      "Bash(bash latex/scripts/build.sh:*)",
+      "Bash(python .github/scripts/kiem_tra_trich_dan.py:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git clean:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git push --force:*)",
+      "Read(./code/.env)",
+      "Write(./code/.env)",
+      "Write(./thuc-nghiem/du-lieu/**)",
+      "Edit(./thuc-nghiem/du-lieu/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/kiem_tra_ghi.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/ngu_canh_phien.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+\chapter{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
+
+\section{Kết quả đạt được của đề tài}
+
+Sau thời gian nghiên cứu nghiêm túc dưới sự hướng dẫn khoa học của TS. Lương Thái Ngọc, đề tài \textit{``Nghiên cứu kỹ thuật khai thác và phòng chống tấn công Man-in-the-Middle''} đã hoàn thành toàn diện các mục tiêu đặt ra với những kết quả cụ thể:
+
+\begin{enumerate}
+  \item \textbf{Về mặt hệ thống hóa lý thuyết:} Đã phân tích bản chất cơ chế của tấn công Man-in-the-Middle, bóc tách các điểm yếu cố hữu trong thiết kế của các giao thức nền tảng TCP/IP (ARP, DNS, DHCP, HTTP); nghiên cứu chuyên sâu 6 kỹ thuật dẫn đường lưu lượng phổ biến (ARP Spoofing, DNS Spoofing, DHCP Spoofing, ICMP Redirect, Rogue AP, SSL Stripping) cùng các kỹ thuật chiếm quyền phiên (Session Hijacking, Cookie Theft, Content Tampering).
+  \item \textbf{Về mặt xây dựng mô hình thử nghiệm:} Đã thiết kế và vận hành thành công mô hình phòng thử nghiệm mạng hoàn chỉnh gồm 5 thành phần: 01 máy tấn công Kali Linux, 02 máy nạn nhân (Windows 10 và Ubuntu), 01 Gateway định tuyến và 01 Web Server tích hợp các ứng dụng kiểm thử.
+  \item \textbf{Về mặt thực nghiệm khai thác (PoC):} Đã chứng minh tính khả thi và mức độ nguy hiểm của các cuộc tấn công thông qua việc thực hiện thành công kịch bản đầu độc ARP Cache, bắt trọn vẹn thông tin đăng nhập và Cookie phiên ở dạng bản rõ, chuyển hướng DNS giả mạo và hạ cấp kết nối HTTPS bằng SSL Stripping.
+  \item \textbf{Về mặt triển khai giải pháp phòng thủ và kiểm chứng:} Đã cấu hình và kiểm chứng hiệu quả thực tế của 5 giải pháp phòng thủ cốt lõi:
+    \begin{itemize}
+      \item Kích hoạt HTTPS với tiêu đề HSTS nghiêm ngặt trên Web Server, vô hiệu hóa hoàn toàn kỹ thuật SSL Stripping.
+      \item Cấu hình DHCP Snooping và Dynamic ARP Inspection (DAI) trên Switch Cisco Catalyst, chặn đứng 100\% các gói tin ARP đầu độc và DHCP giả mạo ngay tại cổng truy cập tầng 2.
+      \item Thiết lập đường hầm VPN mã hóa đầu cuối WireGuard, bảo vệ tuyệt đối lưu lượng người dùng trước mọi hành vi nghe lén trong mạng nội bộ.
+      \item Xây dựng kịch bản tự động giám sát, phát hiện xung đột MAC-IP theo thời gian thực.
+    \end{itemize}
+\end{enumerate}
+
+\section{Những đóng góp chính của đề tài}
+
+\begin{itemize}
+  \item \textbf{Đóng góp về mặt học thuật:} Cung cấp một tài liệu nghiên cứu có tính hệ thống cao, giải thích cặn kẽ từ nguyên lý hoạt động đến quy trình phân tích gói tin mạng của các hình thức tấn công MitM, làm tài liệu tham khảo giá trị cho sinh viên chuyên ngành Mạng máy tính và An ninh thông tin.
+  \item \textbf{Đóng góp về mặt ứng dụng thực tiễn:} Cung cấp bộ cấu hình mẫu chuẩn hóa cho thiết bị mạng (Cisco Switch) và máy chủ web (Nginx), cùng bộ kịch bản kiểm thử mã nguồn mở sẵn sàng triển khai áp dụng vào thực tế để nâng cao năng lực an ninh cho mạng cơ quan, doanh nghiệp và trường học.
+\end{itemize}
+
+\section{Hạn chế của đề tài}
+
+Mặc dù đã đạt được những kết quả đáng kể, đề tài vẫn còn tồn tại một số hạn chế nhất định:
+\begin{itemize}
+  \item Mới chỉ triển khai thực nghiệm trong môi trường phòng thử nghiệm giả lập cục bộ, chưa đo kiểm tác động suy giảm hiệu năng khi kích hoạt tính năng DAI trên các hạ tầng mạng doanh nghiệp quy mô lớn (hàng ngàn thiết bị kết nối đồng thời).
+  \item Các kỹ thuật tấn công mới trên giao thức IPv6 (như Rogue Router Advertisement, Neighbor Discovery Spoofing) chưa được đi sâu phân tích trong phạm vi đề tài này.
+\end{itemize}
+
+\section{Hướng phát triển tiếp theo}
+
+Từ những kết quả và hạn chế nêu trên, các hướng nghiên cứu mở rộng trong tương lai bao gồm:
+\begin{enumerate}
+  \item Mở rộng phạm vi nghiên cứu các kỹ thuật tấn công Man-in-the-Middle trên giao thức IPv6 và các cơ chế phòng vệ tương ứng (như IPv6 RA Guard, SEND --- Secure Neighbor Discovery).
+  \item Nghiên cứu ứng dụng trí tuệ nhân tạo (Machine Learning / Deep Learning) trong việc phân tích hành vi lưu lượng mạng thời gian thực để phát hiện các cuộc tấn công MitM tinh vi mà các luật kiểm tra tĩnh truyền thống chưa nhận diện được.
+  \item Xây dựng mô-đun phần mềm phòng thủ tự động tích hợp công nghệ SDN (Software-Defined Networking) để cách ly tức thời cổng mạng vi phạm khi phát hiện tấn công.
+\end{enumerate}
